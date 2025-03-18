@@ -1,6 +1,7 @@
 package com.surendramaran.yolov8tflite
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -26,6 +27,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import java.io.ByteArrayOutputStream
 import java.net.Socket
 
 
@@ -40,6 +42,22 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private lateinit var captureButton: Button // Capture button variable
 
     private lateinit var cameraExecutor: ExecutorService
+
+    // Define flower-specific parameters in a map
+    private val flowerParameters = mapOf(
+        "Sunflower" to FlowerParams(10f, 70f, 100f, 85f, R.drawable.sunflower),
+        "Gerbera" to FlowerParams(10f, 90f, 100f, 80f, R.drawable.gerbera),
+        "Aster" to FlowerParams(5f, 85f, 100f, 75f, R.drawable.aster),
+        "Chrysanthemum" to FlowerParams(3f, 90f, 100f, 78f, R.drawable.chrysanthemum)
+    )
+    // Define a data class to hold flower parameters
+    data class FlowerParams(
+        val temperature: Float,
+        val humidity: Float,
+        val waterLevelFlower: Float,
+        val waterLevelStorage: Float,
+        val imageResId: Int
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,10 +86,44 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
         //click listener for capture button
         captureButton.setOnClickListener {
-            val boundingBoxes = findViewById<OverlayView>(R.id.overlay).getResults()
-            val detectedFlowers = boundingBoxes.map { it.clsName }
-            captureAndLogResults()
-            showPopup(detectedFlowers)
+            val boundingBoxes = binding.overlay.getResults()
+            if (boundingBoxes.isNotEmpty()) {
+                val capturedBitmap = binding.viewFinder.bitmap
+                if (capturedBitmap == null) {
+                    Toast.makeText(this, "Error capturing image.", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                if (capturedBitmap != null) {
+                    Log.d("CaptureButton", "Image captured successfully.")
+
+                    // Get the detected flower name (first detected one)
+                    val detectedFlower = boundingBoxes[0].clsName
+
+                    // Retrieve correct flower parameters or fallback to default
+                    val params = flowerParameters[detectedFlower] ?: FlowerParams(
+                        22f, 60f, 70f, 80f, R.drawable.default_flower
+                    )
+
+                    // Send image and correct flower parameters to HomeActivity
+                    captureAndSendImage(
+                        capturedBitmap,
+                        "Automatic", // Default mode
+                        params.temperature,
+                        params.humidity,
+                        params.waterLevelFlower,
+                        params.waterLevelStorage,
+                        params.imageResId,
+                        detectedFlower
+                    )
+
+                    showPopup(boundingBoxes.map { it.clsName }) // Show detected flowers in popup
+                } else {
+                    Log.e("CaptureButton", "Failed to capture image.")
+                    Toast.makeText(this, "Error capturing image.", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "No objects detected.", Toast.LENGTH_SHORT).show()
+            }
         }
 
         closePopup.setOnClickListener { hidePopup() }
@@ -84,7 +136,33 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                 sendDataToESP32(detectedFlowers)
             }
         }
+    }
 
+    private fun captureAndSendImage(
+         bitmap: Bitmap,
+         mode: String,
+         temp: Float,
+         humidity: Float,
+         waterLevelFlower: Float,
+         waterLevelStorage: Float,
+         flowerImageResId: Int,
+         detectedFlower: String
+    ){
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        // Send data to HomeActivity
+        val intent = Intent(this, HomeActivity::class.java).apply {
+            intent.putExtra("capturedImage", byteArray)
+            putExtra("mode", mode)
+            putExtra("temperature", temp)
+            putExtra("humidity", humidity)
+            putExtra("waterLevelFlower", waterLevelFlower)
+            putExtra("waterLevelStorage", waterLevelStorage)
+            putExtra("flowerImage", flowerImageResId)
+            putExtra("detectedFlower", detectedFlower)
+        }
+        startActivity(intent)
     }
 
     //sends the detected flowers to esp32 via wifi direct
@@ -268,6 +346,28 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                 setResults(boundingBoxes)
                 invalidate()
             }
+            if (boundingBoxes.isNotEmpty()) {
+                val detectedFlower = boundingBoxes[0].clsName // Get first detected flower
+                val capturedBitmap = binding.viewFinder.bitmap ?: return@runOnUiThread
+
+                // Get flower parameters based on detected flower
+                val params = flowerParameters[detectedFlower] ?: FlowerParams(
+                    22f, 60f, 70f, 80f, R.drawable.default_flower
+                )
+
+                // Send captured image and flower-specific parameters
+                captureAndSendImage(
+                    capturedBitmap,
+                    "Automatic", // Or "Manual" if needed
+                    params.temperature,
+                    params.humidity,
+                    params.waterLevelFlower,
+                    params.waterLevelStorage,
+                    params.imageResId,
+                    detectedFlower
+                )
+            }
         }
     }
+
 }

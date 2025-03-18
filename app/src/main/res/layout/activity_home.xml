@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background">
+
+    <!-- Toolbar / Header Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:paddingTop="8dp"
+        android:paddingBottom="7dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="@color/emerald_600">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="34dp"
+            android:src="@drawable/flower"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="0dp"
+            android:visibility="visible" />
+
+        <TextView
+            android:id="@+id/appTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AsteraCare"
+            android:textSize="24sp"
+            android:textColor="@color/emerald_950"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- ScrollView for Remaining Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="16dp">
+
+            <!-- Captured Flower Image -->
+            <ImageView
+                android:id="@+id/capturedFlowerImage"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_placeholder"
+                android:background="@drawable/border_shape"/>
+
+            <!-- Detected Flower Name -->
+            <TextView
+                android:id="@+id/detectedFlowersTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detected Flower: None"
+                android:textSize="18sp"
+                android:textColor="@color/emerald_950"
+                android:textStyle="bold"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+
+            <!-- Button to Open Camera -->
+            <Button
+                android:id="@+id/openCameraButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Open Camera"
+                android:textColor="@color/emerald_100"
+                android:backgroundTint="@color/button_color"
+                />
+            <!-- Mode Indicator and Chamber Section Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="The Chamber"
+                    android:textSize="18sp"
+                    android:textColor="@color/emerald_950"
+                    android:textStyle="bold"
+                    android:paddingBottom="0dp"
+                    android:layout_weight="1"/>
+
+                <!-- Mode Indicator -->
+                <TextView
+                    android:id="@+id/modeIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mode: Automatic"
+                    android:textColor="@android:color/holo_green_dark"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:paddingEnd="0dp" />
+
+            </LinearLayout>
+
+            <!-- Chamber Parameters Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="0dp">
+
+                <!-- Temperature Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:background="@drawable/parameter_card"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/thermometer" />
+
+                    <TextView
+                        android:id="@+id/temperatureValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Temperature: --°C"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/emerald_950"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <!-- Humidity Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:background="@drawable/parameter_card"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/water_percent" />
+
+                    <TextView
+                        android:id="@+id/humidityValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Humidity: --%"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/emerald_950"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <!-- Water Level for Flower -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:background="@drawable/parameter_card"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/wave" />
+
+                    <TextView
+                        android:id="@+id/waterLevelFlowerValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Flower Water Level: --%"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/emerald_950"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <!-- Water Level for Storage -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:background="@drawable/parameter_card"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/waves" />
+
+                    <TextView
+                        android:id="@+id/waterLevelStorageValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Storage Water Level: --%"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/emerald_950"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

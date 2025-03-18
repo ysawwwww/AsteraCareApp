@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">YOLOv8 TfLite</string>
+    <string name="app_name">AsteraCare</string>
+    <!-- Mode Options Array for Spinner -->
+    <string-array name="mode_options">
+        <item>Automatic</item>
+        <item>Manual</item>
+    </string-array>
 </resources>

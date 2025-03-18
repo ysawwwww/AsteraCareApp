@@ -2,5 +2,31 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="bounding_box_color">#234567</color>
+    <color name="bounding_box_color">#003421</color>
+
+    <color name="grey">#BCBCBC</color>
+    <color name="border">#D9D9D9</color>
+    <color name="primary_bg">#F5F5F5</color>
+    <color name="emerald_50">#eefff7</color>
+    <color name="emerald_100">#d7ffee</color>
+    <color name="emerald_200">#b2ffdf</color>
+    <color name="emerald_300">#76ffc7</color>
+    <color name="emerald_400">#33f5a8</color>
+    <color name="emerald_500">#09de89</color>
+    <color name="emerald_600">#00CB7A</color>
+    <color name="emerald_700">#04915a</color>
+    <color name="emerald_800">#0a7149</color>
+    <color name="emerald_900">#0a5d3f</color>
+    <color name="emerald_950">#003421</color>
+
+    <color name="button_color">#003421</color>
+    <color name="app_background">#F5F5F5</color>
+
+    <color name="primary_color">#00CB7A</color>
+    <color name="primary_dark">#00CB7A</color>
+    <color name="secondary_color">#03DAC5</color>
+    <color name="secondary_dark">#018786</color>
+    <color name="background_color">#FFFFFF</color>
+    <color name="surface_color">#F5F5F5</color>
+
 </resources>
