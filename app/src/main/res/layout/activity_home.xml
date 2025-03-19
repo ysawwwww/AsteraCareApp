@@ -111,7 +111,58 @@
                     android:paddingEnd="0dp" />
 
             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/manualModeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="8dp">
 
+                <EditText
+                    android:id="@+id/inputTemperature"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Temperature (°C)"
+                    android:inputType="numberDecimal"
+                    android:padding="8dp" />
+
+                <EditText
+                    android:id="@+id/inputHumidity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Humidity (%)"
+                    android:inputType="numberDecimal"
+                    android:padding="8dp" />
+
+                <EditText
+                    android:id="@+id/inputWaterLevelFlower"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Flower Water Level (%)"
+                    android:inputType="numberDecimal"
+                    android:padding="8dp" />
+
+                <EditText
+                    android:id="@+id/inputWaterLevelStorage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Storage Water Level (%)"
+                    android:inputType="numberDecimal"
+                    android:padding="8dp" />
+
+                <!-- Send Button for Manual Mode -->
+                <Button
+                    android:id="@+id/sendManualButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Send Parameters"
+                    android:backgroundTint="@color/button_color"
+                    android:textColor="@color/emerald_100"
+                    android:padding="8dp"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
             <!-- Chamber Parameters Section -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -221,6 +272,27 @@
                         android:textColor="@color/emerald_950"
                         android:layout_marginStart="12dp" />
                 </LinearLayout>
+                <!-- Edit Parameters Button (Visible in Manual Mode) -->
+                <Button
+                    android:id="@+id/editParametersButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Edit Parameters"
+                    android:backgroundTint="@color/button_color"
+                    android:textColor="@color/emerald_100"
+                    android:padding="8dp"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+                <!-- Add Mode Toggle and Send Button Here -->
+                <Button
+                    android:id="@+id/modeToggleButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Switch to Manual"
+                    android:backgroundTint="@color/button_color"
+                    android:textColor="@color/emerald_100"
+                    android:padding="8dp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

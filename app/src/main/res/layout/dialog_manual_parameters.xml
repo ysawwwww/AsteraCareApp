@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+    <!-- Temperature Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/parameter_card"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+
+        <!-- Icon for Flower Water Level -->
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/thermometer" />
+
+        <!-- Container for Parameter Name and Controls -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <!-- Parameter Name -->
+            <TextView
+                android:id="@+id/labelTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Temperature"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:layout_marginStart="20dp"
+                android:layout_gravity="start" />
+
+            <!-- Button & Value Container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/decreaseTemp"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:backgroundTint="@color/button_color"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/tempValue"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="--%"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textColor="@color/emerald_950"
+                    android:layout_marginHorizontal="4dp" />
+
+                <Button
+                    android:id="@+id/increaseTemp"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/button_color"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Repeat for Humidity -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/parameter_card"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+
+        <!-- Icon for Flower Water Level -->
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/water_percent" />
+
+        <!-- Container for Parameter Name and Controls -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <!-- Parameter Name -->
+            <TextView
+                android:id="@+id/labelHumidity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Humidity"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:layout_marginStart="20dp"
+                android:layout_gravity="start" />
+
+            <!-- Button & Value Container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/decreaseHumidity"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:backgroundTint="@color/button_color"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/humidityValue"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="--%"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textColor="@color/emerald_950"
+                    android:layout_marginHorizontal="4dp" />
+
+                <Button
+                    android:id="@+id/increaseHumidity"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/button_color"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/parameter_card"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+
+        <!-- Icon for Flower Water Level -->
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/wave" />
+
+        <!-- Container for Parameter Name and Controls -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <!-- Parameter Name -->
+            <TextView
+                android:id="@+id/labelWaterLevelFlower"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Flower Water Level"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:layout_marginStart="20dp"
+                android:layout_gravity="start" />
+
+            <!-- Button & Value Container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/decreasewaterLevelFlowerValue"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="-"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:backgroundTint="@color/button_color"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/waterLevelFlowerValue"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="--%"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textColor="@color/emerald_950"
+                    android:layout_marginHorizontal="4dp" />
+
+                <Button
+                    android:id="@+id/increasewaterLevelFlowerValue"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/button_color"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
