@@ -1,7 +1,16 @@
 package com.surendramaran.yolov8tflite
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -12,6 +21,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import java.io.IOException
+import java.util.UUID
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var capturedFlowerImage: ImageView
@@ -30,10 +41,57 @@ class HomeActivity : AppCompatActivity() {
     private var waterLevelFlowerInput = 0f
     private var waterLevelStorageInput = 0f
 
+    private val REQUEST_ENABLE_BT = 1
+    private val REQUEST_DISCOVERABLE_BT = 2
+//    private var bluetoothAdapter: BluetoothAdapter? = null
+    private lateinit var buttonConnectChamber: Button
+
+    private val TAG = "BluetoothServer"
+    private val NAME = "BluetoothApp"
+    private var bluetoothAdapter: BluetoothAdapter? = null
+    private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Replace with your own UUID
+    private var acceptThread: AcceptThread? = null
+    private var communicationThread: CommunicationThread? = null  // Declare at class leve
+
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action: String? = intent.action
+            if (BluetoothDevice.ACTION_FOUND == action) {
+                val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                val deviceName = device?.name ?: "Unknown"
+                val deviceAddress = device?.address // MAC Address
+                Log.d("Bluetooth", "Discovered Device: $deviceName - $deviceAddress")
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+
+        // Initialize Bluetooth
+        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothAdapter = bluetoothManager.adapter
+        buttonConnectChamber = findViewById(R.id.buttonConnectChamber)
+
+        buttonConnectChamber.setOnClickListener {
+            Log.d("Bluetooth", "Connect Chamber button clicked")
+            checkAndEnableBluetooth()
+        }
+
+        // Check if the device supports Bluetooth
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_LONG).show()
+        } else {
+            checkAndEnableBluetooth()
+        }
+
+        startBluetoothServer()
+
+        // Register receiver for device discovery
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        registerReceiver(receiver, filter)
 
         // Reference UI Elements
         val openCameraButton: Button = findViewById(R.id.openCameraButton)
@@ -93,8 +151,194 @@ class HomeActivity : AppCompatActivity() {
         editParametersButton.setOnClickListener {
             showManualModeForm()
         }
+        sendManualButton.setOnClickListener {
+            val messageToSend = "Manual parameters updated!"
+            communicationThread?.write(messageToSend.toByteArray())
+        }
+    }
+
+    private fun startBluetoothServer() {
+        acceptThread = AcceptThread()
+        acceptThread?.start()
+    }
+
+    private inner class AcceptThread : Thread() {
+
+        private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(NAME, MY_UUID)
+        }
+
+        override fun run() {
+            var shouldLoop = true
+            while (shouldLoop) {
+                val socket: BluetoothSocket? = try {
+                    Log.d(TAG, "Waiting for connection...")
+                    mmServerSocket?.accept()
+                } catch (e: IOException) {
+                    Log.e(TAG, "Socket's accept() method failed", e)
+                    shouldLoop = false
+                    null
+                }
+
+                socket?.also {
+                    Log.d(TAG, "Device connected: ${it.remoteDevice.name}")
+                    manageConnectedSocket(it)
+                    mmServerSocket?.close()
+                    shouldLoop = false
+                }
+            }
+        }
+
+        fun cancel() {
+            try {
+                mmServerSocket?.close()
+            } catch (e: IOException) {
+                Log.e(TAG, "Could not close the connect socket", e)
+            }
+        }
+    }
+
+    private fun manageConnectedSocket(socket: BluetoothSocket) {
+        Log.d(TAG, "Connected to device: ${socket.remoteDevice.name}")
+        // Start a separate thread for communication
+        communicationThread = CommunicationThread(socket) // Pass the socket here
+        communicationThread?.start()
+
+        // Send a test message to the connected device
+        val testMessage = "Hello from Android!"
+        communicationThread?.write(testMessage.toByteArray())
 
     }
+
+    private inner class CommunicationThread(private val socket: BluetoothSocket) : Thread() {
+        private val inputStream = socket.inputStream
+        private val outputStream = socket.outputStream
+
+        override fun run() {
+            val buffer = ByteArray(1024)
+            var bytes: Int
+
+            while (true) {
+                try {
+                    // Read incoming data
+                    bytes = inputStream.read(buffer)
+                    val receivedMessage = String(buffer, 0, bytes)
+
+                    Log.d(TAG, "Received: $receivedMessage")
+
+                    // Update UI with received data
+                    runOnUiThread {
+                        Toast.makeText(this@HomeActivity, "Received: $receivedMessage", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: IOException) {
+                    Log.e(TAG, "Error reading data", e)
+                    break
+                }
+            }
+        }
+
+        fun write(bytes: ByteArray) {
+            try {
+                outputStream.write(bytes)
+                Log.d(TAG, "Sent: ${String(bytes)}")
+            } catch (e: IOException) {
+                Log.e(TAG, "Error sending data", e)
+            }
+        }
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        acceptThread?.cancel()
+    }
+
+    private fun getPairedDevices() {
+        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+        pairedDevices?.forEach { device ->
+            val deviceName = device.name
+            val deviceAddress = device.address // MAC Address
+            Log.d("Bluetooth", "Paired Device: $deviceName - $deviceAddress")
+        }
+    }
+
+    private fun startDiscovery() {
+        if (bluetoothAdapter?.isDiscovering == true) {
+            bluetoothAdapter?.cancelDiscovery()
+        }
+        bluetoothAdapter?.startDiscovery()
+    }
+
+    private fun checkAndEnableBluetooth() {
+        if (bluetoothAdapter?.isEnabled == false) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        }
+        bluetoothAdapter?.let {
+            if (!it.isEnabled) {
+                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+            }
+        } ?: run {
+            Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_SHORT).show()
+        }
+
+        // Start discovering devices
+        if (bluetoothAdapter!!.isDiscovering) {
+            bluetoothAdapter!!.cancelDiscovery()
+        }
+        bluetoothAdapter!!.startDiscovery()
+
+        // Register receiver for discovery results
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        registerReceiver(receiver, filter)
+
+        // Try connecting to "ToasterACARE"
+        connectToToasterACARE()
+    }
+
+    private fun connectToToasterACARE() {
+        bluetoothAdapter?.cancelDiscovery() // Stop discovery before connecting
+        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+        if (!pairedDevices.isNullOrEmpty()) {
+            for (device in pairedDevices) {
+                if (device.name == "AsteraCare") {
+                    Log.d("Bluetooth", "Attempting to connect to AsteraCare (${device.address})")
+                    try {
+                        val uuid = device.uuids?.firstOrNull()?.uuid ?: MY_UUID
+                        Log.d("Bluetooth", "Using UUID: $uuid") // Log the UUID
+                        val socket = device.createRfcommSocketToServiceRecord(uuid)
+                        Log.d("Bluetooth", "Connecting to socket...")
+                        socket.connect()
+                        Log.d("Bluetooth", "Successfully connected to AsteraCare")
+                        Toast.makeText(this, "Connected to AsteraCare", Toast.LENGTH_SHORT).show()
+                        return
+                    } catch (e: Exception) {
+                        Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
+                        Toast.makeText(this, "Failed to connect: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        } else {
+            Log.d("Bluetooth", "AsteraCare device not found in paired devices.")
+            Toast.makeText(this, "AsteraCare not paired. Please pair it first.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show()
+                // Start discovery only after Bluetooth is enabled
+                startDiscovery()
+                connectToToasterACARE()
+            } else {
+                Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun showModeConfirmationDialog() {
         val newMode = if (isManualMode) "Automatic" else "Manual"
