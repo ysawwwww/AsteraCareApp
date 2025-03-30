@@ -240,5 +240,14 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+    <Button
+        android:id="@+id/sendManualButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Send Manual Parameters"
+        android:backgroundTint="@color/button_color"
+        android:textColor="@color/emerald_100"
+        android:padding="8dp"
+        android:layout_marginTop="8dp" />
 
 </LinearLayout>

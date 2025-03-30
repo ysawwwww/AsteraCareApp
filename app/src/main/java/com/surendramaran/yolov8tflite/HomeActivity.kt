@@ -1,4 +1,5 @@
 package com.surendramaran.yolov8tflite
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -22,6 +23,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.UUID
 
 class HomeActivity : AppCompatActivity() {
@@ -38,7 +41,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var editParametersButton: Button
     private var tempInput = 0f
     private var humidityInput = 0f
-    private var waterLevelFlowerInput = 0f
+    private var waterLevelFlowerValueInput = 0f
     private var waterLevelStorageInput = 0f
 
     private val REQUEST_ENABLE_BT = 1
@@ -64,11 +67,15 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
+    
+    // Move the Companion Object **Outside** the CommunicationThread class
+    private companion object {
+        private const val TAG = "CommunicationThread"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-
 
         // Initialize Bluetooth
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -141,7 +148,9 @@ class HomeActivity : AppCompatActivity() {
 
         modeToggleButton = findViewById(R.id.modeToggleButton)
         manualModeLayout = findViewById(R.id.manualModeLayout)
-        sendManualButton = findViewById(R.id.sendManualButton)
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_manual_parameters, null)
+        sendManualButton = dialogView.findViewById<Button>(R.id.sendManualButton)
 
         modeToggleButton.setOnClickListener {
             showModeConfirmationDialog()
@@ -151,10 +160,15 @@ class HomeActivity : AppCompatActivity() {
         editParametersButton.setOnClickListener {
             showManualModeForm()
         }
-        sendManualButton.setOnClickListener {
-            val messageToSend = "Manual parameters updated!"
-            communicationThread?.write(messageToSend.toByteArray())
-        }
+//        sendManualButton.setOnClickListener {
+//            val messageToSend = "Manual parameters updated!"
+//            if (communicationThread == null) {
+//                Log.e("Bluetooth", "Communication thread is not initialized. Ensure Bluetooth is connected.")
+//            } else {
+//                Log.d("Bluetooth", "Sending manual parameters: $messageToSend")
+//                communicationThread?.write(messageToSend.toByteArray())
+//            }
+//        }
     }
 
     private fun startBluetoothServer() {
@@ -205,48 +219,63 @@ class HomeActivity : AppCompatActivity() {
         communicationThread?.start()
 
         // Send a test message to the connected device
-        val testMessage = "Hello from Android!"
+        val testMessage = "ASTERACARE LETS GOOOOOOOOOOOOOOO!"
         communicationThread?.write(testMessage.toByteArray())
 
     }
 
     private inner class CommunicationThread(private val socket: BluetoothSocket) : Thread() {
-        private val inputStream = socket.inputStream
-        private val outputStream = socket.outputStream
+        private val inputStream: InputStream = socket.inputStream
+        private val outputStream: OutputStream = socket.outputStream
+        private val buffer = ByteArray(1024)
+        private var isRunning = true
 
         override fun run() {
-            val buffer = ByteArray(1024)
-            var bytes: Int
-
-            while (true) {
+            while (isRunning) {
                 try {
-                    // Read incoming data
-                    bytes = inputStream.read(buffer)
-                    val receivedMessage = String(buffer, 0, bytes)
+                    val bytes = inputStream.read(buffer)
+                    if (bytes > 0) {
+                        val receivedMessage = String(buffer, 0, bytes).trim()
+                        Log.d(TAG, "Received: $receivedMessage")
 
-                    Log.d(TAG, "Received: $receivedMessage")
-
-                    // Update UI with received data
-                    runOnUiThread {
-                        Toast.makeText(this@HomeActivity, "Received: $receivedMessage", Toast.LENGTH_SHORT).show()
+                        runOnUiThread {
+                            temperatureValue.text = "Temperature: ${parseData(receivedMessage, "TEMP")}°C"
+                            humidityValue.text = "Humidity: ${parseData(receivedMessage, "HUM")}%"
+                            waterLevelFlowerValue.text = "Flower Water Level: ${parseData(receivedMessage, "WATER")}%"
+                        }
                     }
                 } catch (e: IOException) {
                     Log.e(TAG, "Error reading data", e)
+                    isRunning = false
                     break
                 }
             }
         }
 
-        fun write(bytes: ByteArray) {
+        private fun parseData(data: String, key: String): String {
+            return data.split(",").find { it.startsWith("$key:") }?.split(":")?.get(1) ?: "--"
+        }
+//        call to send data to remote device
+        fun write(message: ByteArray) {
             try {
-                outputStream.write(bytes)
-                Log.d(TAG, "Sent: ${String(bytes)}")
+                Log.d("Bluetooth", "Writing to outputStream: ${String(message)}")
+                outputStream.write(message)
+                outputStream.flush()
+                Log.d("Bluetooth", "Message sent successfully")
             } catch (e: IOException) {
-                Log.e(TAG, "Error sending data", e)
+                Log.e("Bluetooth", "Error sending data", e)
+            }
+        }
+//        call to shut down connection
+        fun cancel() {
+            try {
+                isRunning = false
+                socket.close()
+            } catch (e: IOException) {
+                Log.e(TAG, "Error closing socket", e)
             }
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
@@ -312,6 +341,10 @@ class HomeActivity : AppCompatActivity() {
                         socket.connect()
                         Log.d("Bluetooth", "Successfully connected to AsteraCare")
                         Toast.makeText(this, "Connected to AsteraCare", Toast.LENGTH_SHORT).show()
+
+                        // Call manageConnectedSocket() - initiliaze communication thread
+                        manageConnectedSocket(socket)
+
                         return
                     } catch (e: Exception) {
                         Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
@@ -372,11 +405,13 @@ class HomeActivity : AppCompatActivity() {
 
         Toast.makeText(this, "Mode switched to ${if (isManualMode) "Manual" else "Automatic"}", Toast.LENGTH_SHORT).show()
     }
+
+
     private fun showManualModeForm() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_manual_parameters, null, false)
 
         // Temperature Increment/Decrement
-        val tempValue = dialogView.findViewById<TextView>(R.id.tempValue)
+        val temperatureValue = dialogView.findViewById<TextView>(R.id.tempValue)
         val decreaseTemp = dialogView.findViewById<Button>(R.id.decreaseTemp)
         val increaseTemp = dialogView.findViewById<Button>(R.id.increaseTemp)
 
@@ -387,27 +422,26 @@ class HomeActivity : AppCompatActivity() {
 
         // Flower Water Level Increment/Decrement
         val waterLevelFlowerValue = dialogView.findViewById<TextView>(R.id.waterLevelFlowerValue)
-        val decreasewaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.decreasewaterLevelFlowerValue)
-        val increasewaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.increasewaterLevelFlowerValue)
+        val decreaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.decreasewaterLevelFlowerValue)
+        val increaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.increasewaterLevelFlowerValue)
 
-        // Initial values
-        var tempInput = 25f
-        var humidityInput = 50f
-        var waterLevelFlowerValueInput = 50f
-
+        // Set saved values when opening the dialog
+        temperatureValue.text = "$tempInput°C"
+        humidityValue.text = "$humidityInput%"
+        waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
 
         // Temperature controls
         decreaseTemp.setOnClickListener {
             if (tempInput > 0) {
                 tempInput -= 1
-                tempValue.text = "$tempInput°C"
+                temperatureValue.text = "$tempInput°C"
             }
         }
 
         increaseTemp.setOnClickListener {
             if (tempInput < 50) { // Max range 50°C
                 tempInput += 1
-                tempValue.text = "$tempInput°C"
+                temperatureValue.text = "$tempInput°C"
             }
         }
 
@@ -426,45 +460,68 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
-        // flower water level
-        decreasewaterLevelFlowerValue.setOnClickListener {
+        // Flower water level
+        decreaseWaterLevelFlowerValue.setOnClickListener {
             if (waterLevelFlowerValueInput > 0) {
                 waterLevelFlowerValueInput -= 1
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
         }
 
-        increasewaterLevelFlowerValue.setOnClickListener {
+        increaseWaterLevelFlowerValue.setOnClickListener {
             if (waterLevelFlowerValueInput < 100) { // Max 100%
                 waterLevelFlowerValueInput += 1
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
         }
 
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setView(dialogView)
 
-        // Create dialog
-        AlertDialog.Builder(this)
-            .setTitle("Edit Chamber Parameters")
-            .setView(dialogView)
-            .setPositiveButton("Send to Chamber") { _, _ ->
-                saveManualParameters(tempInput, humidityInput, waterLevelFlowerValueInput, 60f) // Set dummy values for water level for now
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
+
+        val sendManualButton = dialogView.findViewById<Button>(R.id.sendManualButton)
+
+        sendManualButton.setOnClickListener {
+            // Get the updated values before sending
+            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER_FLOWER:$waterLevelFlowerValueInput"
+
+            if (communicationThread != null) {
+                Log.d("Bluetooth", "Sending message: $messageToSend")
+                communicationThread?.write(messageToSend.toByteArray())
+                Toast.makeText(this, "Parameters successfully sent to chamber!", Toast.LENGTH_SHORT).show()
+
+                // Pass values back to `HomeActivity`
+                updateHomeScreen(tempInput, humidityInput, waterLevelFlowerValueInput)
+                Log.d("update home screen", "Updated: $tempInput, $humidityInput, $waterLevelFlowerValueInput")
+
+            } else {
+                Log.e("Bluetooth", "Communication thread is not initialized!")
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+            alertDialog.dismiss()
+        }
     }
-    private fun saveManualParameters(temp: Float, humidity: Float, waterLevelFlower: Float, waterLevelStorage: Float) {
-        tempInput = temp
-        humidityInput = humidity
-        waterLevelFlowerInput = waterLevelFlower
-        waterLevelStorageInput = waterLevelStorage
 
-        // Update UI with new values
-        temperatureValue.text = "Temperature: ${if (temp > 0) "$temp°C" else "--°C"}"
-        humidityValue.text = "Humidity: ${if (humidity > 0) "$humidity%" else "--%"}"
-        waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower > 0) "$waterLevelFlower%" else "--%"}"
-        waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage > 0) "$waterLevelStorage%" else "--%"}"
-
-        Toast.makeText(this, "Parameters updated successfully", Toast.LENGTH_SHORT).show()
+    private fun updateHomeScreen(temp: Float, humidity: Float, waterLevel: Float) {
+        temperatureValue.text = "Temperature: $temp°C"
+        humidityValue.text = "Humidity: $humidity%"
+        waterLevelFlowerValue.text = "Flower Water Level: $waterLevel%"
     }
+
+//    private fun saveManualParameters(temp: Float, humidity: Float, waterLevelFlower: Float, waterLevelStorage: Float) {
+//        tempInput = temp
+//        humidityInput = humidity
+//        waterLevelFlowerValueInput = waterLevelFlower
+//        waterLevelStorageInput = waterLevelStorage
+//
+//        // Update UI with new values
+//        temperatureValue.text = "Temperature: ${if (temp > 0) "$temp°C" else "--°C"}"
+//        humidityValue.text = "Humidity: ${if (humidity > 0) "$humidity%" else "--%"}"
+//        waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower > 0) "$waterLevelFlower%" else "--%"}"
+//        waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage > 0) "$waterLevelStorage%" else "--%"}"
+//
+//        Toast.makeText(this, "Parameters updated successfully", Toast.LENGTH_SHORT).show()
+//    }
 
 }
