@@ -1,5 +1,4 @@
 package com.surendramaran.yolov8tflite
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -15,7 +14,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -46,13 +44,12 @@ class HomeActivity : AppCompatActivity() {
 
     private val REQUEST_ENABLE_BT = 1
     private val REQUEST_DISCOVERABLE_BT = 2
-//    private var bluetoothAdapter: BluetoothAdapter? = null
     private lateinit var buttonConnectChamber: Button
 
     private val TAG = "BluetoothServer"
     private val NAME = "BluetoothApp"
     private var bluetoothAdapter: BluetoothAdapter? = null
-    private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Replace with your own UUID
+    private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     private var acceptThread: AcceptThread? = null
     private var communicationThread: CommunicationThread? = null  // Declare at class leve
 
@@ -67,8 +64,7 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
-    
-    // Move the Companion Object **Outside** the CommunicationThread class
+
     private companion object {
         private const val TAG = "CommunicationThread"
     }
@@ -110,7 +106,7 @@ class HomeActivity : AppCompatActivity() {
         waterLevelStorageValue = findViewById(R.id.waterLevelStorageValue)
         val detectedFlowersTextView: TextView = findViewById(R.id.detectedFlowersTextView)
 
-        val detectedFlower = intent.getStringExtra("detectedFlower") ?: "Unknown Flower"
+        val detectedFlower = intent.getStringExtra("detectedFlower") ?: "None"
         detectedFlowersTextView.text = "Detected Flower: $detectedFlower"
 
         // Receive and display flower-specific image and parameters
@@ -146,11 +142,13 @@ class HomeActivity : AppCompatActivity() {
         waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower >= 0) "$waterLevelFlower%" else "--%"}"
         waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage >= 0) "$waterLevelStorage%" else "--%"}"
 
+        // Update input values for manual mode with classified flower parameters
+        if (temperature >= 0) tempInput = temperature
+        if (humidity >= 0) humidityInput = humidity
+        if (waterLevelFlower >= 0) waterLevelFlowerValueInput = waterLevelFlower
+
         modeToggleButton = findViewById(R.id.modeToggleButton)
         manualModeLayout = findViewById(R.id.manualModeLayout)
-
-        val dialogView = layoutInflater.inflate(R.layout.dialog_manual_parameters, null)
-        sendManualButton = dialogView.findViewById<Button>(R.id.sendManualButton)
 
         modeToggleButton.setOnClickListener {
             showModeConfirmationDialog()
@@ -160,15 +158,6 @@ class HomeActivity : AppCompatActivity() {
         editParametersButton.setOnClickListener {
             showManualModeForm()
         }
-//        sendManualButton.setOnClickListener {
-//            val messageToSend = "Manual parameters updated!"
-//            if (communicationThread == null) {
-//                Log.e("Bluetooth", "Communication thread is not initialized. Ensure Bluetooth is connected.")
-//            } else {
-//                Log.d("Bluetooth", "Sending manual parameters: $messageToSend")
-//                communicationThread?.write(messageToSend.toByteArray())
-//            }
-//        }
     }
 
     private fun startBluetoothServer() {
@@ -218,10 +207,26 @@ class HomeActivity : AppCompatActivity() {
         communicationThread = CommunicationThread(socket) // Pass the socket here
         communicationThread?.start()
 
-        // Send a test message to the connected device
-        val testMessage = "ASTERACARE LETS GOOOOOOOOOOOOOOO!"
-        communicationThread?.write(testMessage.toByteArray())
+        // Send the detected flower data after connecting
+        val detectedFlower = intent.getStringExtra("detectedFlower") ?: "Unknown"
+        val flowerMessage = "FLOWER: $detectedFlower\n"
+        communicationThread?.write(flowerMessage.toByteArray())
 
+        Log.d(TAG, "Sent detected flower: $detectedFlower")
+
+    }
+
+    //    will use this for the capture button later
+    private fun sendDetectedFlower() {
+        val detectedFlower = intent.getStringExtra("detectedFlower") ?: "Unknown"
+        val message = "FLOWER: $detectedFlower\n"
+
+        if (communicationThread != null) {
+            communicationThread?.write(message.toByteArray())
+            Log.d(TAG, "Sent detected flower dynamically: $detectedFlower")
+        } else {
+            Log.e(TAG, "Communication thread is not initialized. Ensure Bluetooth is connected.")
+        }
     }
 
     private inner class CommunicationThread(private val socket: BluetoothSocket) : Thread() {
@@ -247,6 +252,10 @@ class HomeActivity : AppCompatActivity() {
                 } catch (e: IOException) {
                     Log.e(TAG, "Error reading data", e)
                     isRunning = false
+                    runOnUiThread {
+                        Toast.makeText(this@HomeActivity, "Connection Lost! Reconnecting...", Toast.LENGTH_SHORT).show()
+                    }
+                    reconnectToAsteraCare()  // Automatically attempt reconnection
                     break
                 }
             }
@@ -255,7 +264,7 @@ class HomeActivity : AppCompatActivity() {
         private fun parseData(data: String, key: String): String {
             return data.split(",").find { it.startsWith("$key:") }?.split(":")?.get(1) ?: "--"
         }
-//        call to send data to remote device
+        //        call to send data to remote device
         fun write(message: ByteArray) {
             try {
                 Log.d("Bluetooth", "Writing to outputStream: ${String(message)}")
@@ -266,7 +275,7 @@ class HomeActivity : AppCompatActivity() {
                 Log.e("Bluetooth", "Error sending data", e)
             }
         }
-//        call to shut down connection
+        //        call to shut down connection
         fun cancel() {
             try {
                 isRunning = false
@@ -275,6 +284,12 @@ class HomeActivity : AppCompatActivity() {
                 Log.e(TAG, "Error closing socket", e)
             }
         }
+    }
+
+    // ✅ Reconnect to AsteraCare automatically if needed
+    private fun reconnectToAsteraCare() {
+        Log.d("Bluetooth", "Attempting to reconnect...")
+        connectToToasterACARE()
     }
 
     override fun onDestroy() {
@@ -333,19 +348,26 @@ class HomeActivity : AppCompatActivity() {
             for (device in pairedDevices) {
                 if (device.name == "AsteraCare") {
                     Log.d("Bluetooth", "Attempting to connect to AsteraCare (${device.address})")
+
+                    // ✅ Close any existing socket before reconnecting
+                    communicationThread?.cancel()  // Close any existing thread safely
+                    communicationThread = null
+
                     try {
                         val uuid = device.uuids?.firstOrNull()?.uuid ?: MY_UUID
-                        Log.d("Bluetooth", "Using UUID: $uuid") // Log the UUID
+                        Log.d("Bluetooth", "Using UUID: $uuid")
                         val socket = device.createRfcommSocketToServiceRecord(uuid)
+
                         Log.d("Bluetooth", "Connecting to socket...")
-                        socket.connect()
+                        socket.connect()  // Connect to the device again
                         Log.d("Bluetooth", "Successfully connected to AsteraCare")
+
                         Toast.makeText(this, "Connected to AsteraCare", Toast.LENGTH_SHORT).show()
 
-                        // Call manageConnectedSocket() - initiliaze communication thread
+                        // ✅ Start a new CommunicationThread after reconnecting
                         manageConnectedSocket(socket)
-
                         return
+
                     } catch (e: Exception) {
                         Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
                         Toast.makeText(this, "Failed to connect: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -371,7 +393,6 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun showModeConfirmationDialog() {
         val newMode = if (isManualMode) "Automatic" else "Manual"
@@ -400,12 +421,16 @@ class HomeActivity : AppCompatActivity() {
             modeIndicator.text = "Mode: Manual"
             modeToggleButton.text = "Switch to Automatic"
             editParametersButton.visibility = View.VISIBLE
+            // ⚡ Reconnect and initialize communication thread if needed
+            if (communicationThread == null || !communicationThread!!.isAlive) {
+                Log.d("Bluetooth", "Reconnecting for manual mode...")
+                connectToToasterACARE()
+            }
             showManualModeForm() // Open form immediately when switching to manual
         }
 
         Toast.makeText(this, "Mode switched to ${if (isManualMode) "Manual" else "Automatic"}", Toast.LENGTH_SHORT).show()
     }
-
 
     private fun showManualModeForm() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_manual_parameters, null, false)
@@ -487,17 +512,23 @@ class HomeActivity : AppCompatActivity() {
             // Get the updated values before sending
             val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER_FLOWER:$waterLevelFlowerValueInput"
 
+            if (communicationThread == null || !communicationThread!!.isAlive) {
+                Log.d("Bluetooth", "Reconnecting to AsteraCare before sending parameters...")
+                connectToToasterACARE()  // Reconnect if the thread is not active
+            }
+
             if (communicationThread != null) {
                 Log.d("Bluetooth", "Sending message: $messageToSend")
                 communicationThread?.write(messageToSend.toByteArray())
                 Toast.makeText(this, "Parameters successfully sent to chamber!", Toast.LENGTH_SHORT).show()
 
-                // Pass values back to `HomeActivity`
+                // Pass values back to HomeActivity
                 updateHomeScreen(tempInput, humidityInput, waterLevelFlowerValueInput)
                 Log.d("update home screen", "Updated: $tempInput, $humidityInput, $waterLevelFlowerValueInput")
 
             } else {
                 Log.e("Bluetooth", "Communication thread is not initialized!")
+                Toast.makeText(this, "Failed to send data. Reconnecting...", Toast.LENGTH_SHORT).show()
             }
             alertDialog.dismiss()
         }
@@ -508,20 +539,5 @@ class HomeActivity : AppCompatActivity() {
         humidityValue.text = "Humidity: $humidity%"
         waterLevelFlowerValue.text = "Flower Water Level: $waterLevel%"
     }
-
-//    private fun saveManualParameters(temp: Float, humidity: Float, waterLevelFlower: Float, waterLevelStorage: Float) {
-//        tempInput = temp
-//        humidityInput = humidity
-//        waterLevelFlowerValueInput = waterLevelFlower
-//        waterLevelStorageInput = waterLevelStorage
-//
-//        // Update UI with new values
-//        temperatureValue.text = "Temperature: ${if (temp > 0) "$temp°C" else "--°C"}"
-//        humidityValue.text = "Humidity: ${if (humidity > 0) "$humidity%" else "--%"}"
-//        waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower > 0) "$waterLevelFlower%" else "--%"}"
-//        waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage > 0) "$waterLevelStorage%" else "--%"}"
-//
-//        Toast.makeText(this, "Parameters updated successfully", Toast.LENGTH_SHORT).show()
-//    }
 
 }
