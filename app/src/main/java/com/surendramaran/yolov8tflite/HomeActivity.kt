@@ -122,6 +122,8 @@ class HomeActivity : AppCompatActivity() {
         openCameraButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+        //        putting dis here just to be sure lolol
+            connectToToasterACARE()
         }
 
         // Receive and display captured image if available
@@ -152,7 +154,7 @@ class HomeActivity : AppCompatActivity() {
         waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower >= 0) "$waterLevelFlower%" else "--%"}"
         waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage >= 0) "$waterLevelStorage%" else "--%"}"
 
-        communicationThread?.write("FLOWER:$currentDetectedFlower".toByteArray())
+        communicationThread?.write("FLOWER:$currentDetectedFlower\n".toByteArray())
 
         modeToggleButton = findViewById(R.id.modeToggleButton)
         manualModeLayout = findViewById(R.id.manualModeLayout)
@@ -234,11 +236,10 @@ class HomeActivity : AppCompatActivity() {
                     if (bytes > 0) {
                         val receivedMessage = String(buffer, 0, bytes).trim()
                         Log.d(TAG, "Received: $receivedMessage")
-
                         runOnUiThread {
-                            temperatureValue.text = "Temperature: ${parseData(receivedMessage, "TEMP")}°C"
-                            humidityValue.text = "Humidity: ${parseData(receivedMessage, "HUM")}%"
-                            waterLevelFlowerValue.text = "Flower Water Level: ${parseData(receivedMessage, "WATER")}%"
+                            // Update only storage water level
+                            waterLevelStorageValue.text =
+                                "Storage Water Level: ${parseWaterLevel(receivedMessage)}%"
                         }
                     }
                 } catch (e: IOException) {
@@ -248,9 +249,15 @@ class HomeActivity : AppCompatActivity() {
                 }
             }
         }
-
-        private fun parseData(data: String, key: String): String {
-            return data.split(",").find { it.startsWith("$key:") }?.split(":")?.get(1) ?: "--"
+        // Parsing function specifically for storage water level
+        private fun parseWaterLevel(data: String): String {
+            return if (data.startsWith("STORAGE_WATER_LEVEL_LOW:")) {
+                data.substringAfter("STORAGE_WATER_LEVEL_LOW:").toFloatOrNull()?.let {
+                    it.toString()
+                } ?: "--"
+            } else {
+                "--"
+            }
         }
 //        call to send data to remote device
         fun write(message: ByteArray) {
