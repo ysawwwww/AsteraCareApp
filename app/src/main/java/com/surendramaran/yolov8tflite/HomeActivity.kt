@@ -34,6 +34,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var humidityValue: TextView
     private lateinit var waterLevelFlowerValue: TextView
     private lateinit var waterLevelStorageValue: TextView
+    private var currentTemperature = -1f
+    private var currentHumidity = -1f
+    private var currentWaterLevelFlower = -1f
+    private var currentWaterLevelStorage = -1f
+    private var currentDetectedFlower = "Unknown"
     private lateinit var modeToggleButton: Button
     private var isManualMode = false
     private lateinit var manualModeLayout: LinearLayout
@@ -43,12 +48,8 @@ class HomeActivity : AppCompatActivity() {
     private var humidityInput = 0f
     private var waterLevelFlowerValueInput = 0f
     private var waterLevelStorageInput = 0f
-
     private val REQUEST_ENABLE_BT = 1
-    private val REQUEST_DISCOVERABLE_BT = 2
-//    private var bluetoothAdapter: BluetoothAdapter? = null
     private lateinit var buttonConnectChamber: Button
-
     private val TAG = "BluetoothServer"
     private val NAME = "BluetoothApp"
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -117,7 +118,6 @@ class HomeActivity : AppCompatActivity() {
         val flowerImageResId = intent.getIntExtra("flowerImage", R.drawable.default_flower)
         capturedFlowerImage.setImageResource(flowerImageResId)
 
-
         // Set click listener to open MainActivity
         openCameraButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
@@ -139,12 +139,20 @@ class HomeActivity : AppCompatActivity() {
         val waterLevelFlower = intent.getFloatExtra("waterLevelFlower", -1f)
         val waterLevelStorage = intent.getFloatExtra("waterLevelStorage", -1f)
 
+        currentTemperature = intent.getFloatExtra("temperature", -1f)
+        currentHumidity = intent.getFloatExtra("humidity", -1f)
+        currentWaterLevelFlower = intent.getFloatExtra("waterLevelFlower", -1f)
+        currentWaterLevelStorage = intent.getFloatExtra("waterLevelStorage", -1f)
+        currentDetectedFlower = intent.getStringExtra("detectedFlower") ?: "Unknown Flower"
+
         // Update TextViews with received values
         modeIndicator.text = "Mode: $mode"
         temperatureValue.text = "Temperature: ${if (temperature >= 0) "$temperature°C" else "--°C"}"
         humidityValue.text = "Humidity: ${if (humidity >= 0) "$humidity%" else "--%"}"
         waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower >= 0) "$waterLevelFlower%" else "--%"}"
         waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage >= 0) "$waterLevelStorage%" else "--%"}"
+
+        communicationThread?.write("FLOWER:$currentDetectedFlower".toByteArray())
 
         modeToggleButton = findViewById(R.id.modeToggleButton)
         manualModeLayout = findViewById(R.id.manualModeLayout)
@@ -160,15 +168,6 @@ class HomeActivity : AppCompatActivity() {
         editParametersButton.setOnClickListener {
             showManualModeForm()
         }
-//        sendManualButton.setOnClickListener {
-//            val messageToSend = "Manual parameters updated!"
-//            if (communicationThread == null) {
-//                Log.e("Bluetooth", "Communication thread is not initialized. Ensure Bluetooth is connected.")
-//            } else {
-//                Log.d("Bluetooth", "Sending manual parameters: $messageToSend")
-//                communicationThread?.write(messageToSend.toByteArray())
-//            }
-//        }
     }
 
     private fun startBluetoothServer() {
@@ -217,11 +216,9 @@ class HomeActivity : AppCompatActivity() {
         // Start a separate thread for communication
         communicationThread = CommunicationThread(socket) // Pass the socket here
         communicationThread?.start()
-
-        // Send a test message to the connected device
-        val testMessage = "ASTERACARE LETS GOOOOOOOOOOOOOOO!"
-        communicationThread?.write(testMessage.toByteArray())
-
+//        // Send a test message to the connected device
+//        val testMessage = "ASTERACARE LETS GOOOOOOOOOOOOOOO!"
+//        communicationThread?.write(testMessage.toByteArray())
     }
 
     private inner class CommunicationThread(private val socket: BluetoothSocket) : Thread() {
@@ -348,7 +345,7 @@ class HomeActivity : AppCompatActivity() {
                         return
                     } catch (e: Exception) {
                         Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
-                        Toast.makeText(this, "Failed to connect: ${e.message}", Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(this, "Failed to connect: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -406,45 +403,41 @@ class HomeActivity : AppCompatActivity() {
         Toast.makeText(this, "Mode switched to ${if (isManualMode) "Manual" else "Automatic"}", Toast.LENGTH_SHORT).show()
     }
 
-
     private fun showManualModeForm() {
+        // Sync values from auto mode to manual inputs
+        tempInput = currentTemperature.toFloat()
+        humidityInput = currentHumidity.toFloat()
+        waterLevelFlowerValueInput = currentWaterLevelFlower.toFloat()
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_manual_parameters, null, false)
-
         // Temperature Increment/Decrement
         val temperatureValue = dialogView.findViewById<TextView>(R.id.tempValue)
         val decreaseTemp = dialogView.findViewById<Button>(R.id.decreaseTemp)
         val increaseTemp = dialogView.findViewById<Button>(R.id.increaseTemp)
-
         // Humidity Increment/Decrement
         val humidityValue = dialogView.findViewById<TextView>(R.id.humidityValue)
         val decreaseHumidity = dialogView.findViewById<Button>(R.id.decreaseHumidity)
         val increaseHumidity = dialogView.findViewById<Button>(R.id.increaseHumidity)
-
         // Flower Water Level Increment/Decrement
         val waterLevelFlowerValue = dialogView.findViewById<TextView>(R.id.waterLevelFlowerValue)
         val decreaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.decreasewaterLevelFlowerValue)
         val increaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.increasewaterLevelFlowerValue)
-
-        // Set saved values when opening the dialog
+        // Temperature controls
+        // Display current values
         temperatureValue.text = "$tempInput°C"
         humidityValue.text = "$humidityInput%"
         waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
-
-        // Temperature controls
         decreaseTemp.setOnClickListener {
             if (tempInput > 0) {
                 tempInput -= 1
                 temperatureValue.text = "$tempInput°C"
             }
         }
-
         increaseTemp.setOnClickListener {
             if (tempInput < 50) { // Max range 50°C
                 tempInput += 1
                 temperatureValue.text = "$tempInput°C"
             }
         }
-
         // Humidity controls
         decreaseHumidity.setOnClickListener {
             if (humidityInput > 0) {
@@ -452,14 +445,12 @@ class HomeActivity : AppCompatActivity() {
                 humidityValue.text = "$humidityInput%"
             }
         }
-
         increaseHumidity.setOnClickListener {
             if (humidityInput < 100) { // Max 100%
                 humidityInput += 1
                 humidityValue.text = "$humidityInput%"
             }
         }
-
         // Flower water level
         decreaseWaterLevelFlowerValue.setOnClickListener {
             if (waterLevelFlowerValueInput > 0) {
@@ -467,7 +458,6 @@ class HomeActivity : AppCompatActivity() {
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
         }
-
         increaseWaterLevelFlowerValue.setOnClickListener {
             if (waterLevelFlowerValueInput < 100) { // Max 100%
                 waterLevelFlowerValueInput += 1
@@ -502,26 +492,9 @@ class HomeActivity : AppCompatActivity() {
             alertDialog.dismiss()
         }
     }
-
     private fun updateHomeScreen(temp: Float, humidity: Float, waterLevel: Float) {
         temperatureValue.text = "Temperature: $temp°C"
         humidityValue.text = "Humidity: $humidity%"
         waterLevelFlowerValue.text = "Flower Water Level: $waterLevel%"
     }
-
-//    private fun saveManualParameters(temp: Float, humidity: Float, waterLevelFlower: Float, waterLevelStorage: Float) {
-//        tempInput = temp
-//        humidityInput = humidity
-//        waterLevelFlowerValueInput = waterLevelFlower
-//        waterLevelStorageInput = waterLevelStorage
-//
-//        // Update UI with new values
-//        temperatureValue.text = "Temperature: ${if (temp > 0) "$temp°C" else "--°C"}"
-//        humidityValue.text = "Humidity: ${if (humidity > 0) "$humidity%" else "--%"}"
-//        waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower > 0) "$waterLevelFlower%" else "--%"}"
-//        waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage > 0) "$waterLevelStorage%" else "--%"}"
-//
-//        Toast.makeText(this, "Parameters updated successfully", Toast.LENGTH_SHORT).show()
-//    }
-
 }

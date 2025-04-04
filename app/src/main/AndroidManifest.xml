@@ -47,9 +47,6 @@
         </activity>
         <!-- MainActivity (Camera) -->
         <activity android:name=".MainActivity" />
-        <service
-            android:name=".SerialService"
-            android:foregroundServiceType="remoteMessaging|connectedDevice" />
     </application>
 
 </manifest>
