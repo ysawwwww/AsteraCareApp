@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to AsteraCare!"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/emerald_900" />
+
+    <TextView
+        android:id="@+id/dialogMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This app helps preserve Asteraceae flowers by recognizing the flower type with YOLOv8 and adjusting temperature, humidity, and hydration levels for optimal freshness. \n\nStart by classifying a flower so we can set the perfect conditions for it!"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/emerald_800" />
+
+    <Button
+        android:id="@+id/btnGotIt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Got it"
+        android:layout_gravity="end"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

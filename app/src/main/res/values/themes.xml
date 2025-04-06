@@ -19,6 +19,10 @@
         <!-- Toolbar and Status Bar -->
         <item name="android:statusBarColor">@color/primary_dark</item>
         <item name="android:navigationBarColor">@color/primary_color</item>
+
+        <item name="android:windowSplashScreenBackground">#00CB7A</item>
+        <item name="android:windowSplashScreenAnimationDuration">500</item> <!-- optional -->
+
     </style>
 
     <style name="Theme.YOLOv8TfLite" parent="Base.Theme.YOLOv8TfLite" />

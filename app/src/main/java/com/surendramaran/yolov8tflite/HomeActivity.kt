@@ -9,7 +9,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -22,6 +24,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -78,6 +82,32 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12+
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(this, arrayOf(
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_SCAN,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ), 1001)
+            }
+        }
+
+        val prefs = getSharedPreferences("AsteraCarePrefs", MODE_PRIVATE)
+        val hasSeenDialog = prefs.getBoolean("hasSeenWelcome", false)
+
+        if (!hasSeenDialog) {
+            showWelcomeDialog()
+            prefs.edit().putBoolean("hasSeenWelcome", true).apply()
+        }
+
+        val helpIcon = findViewById<ImageView>(R.id.helpIcon)
+        helpIcon.setOnClickListener {
+            showWelcomeDialog()
+        }
+
         // Initialize Bluetooth
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
@@ -115,7 +145,7 @@ class HomeActivity : AppCompatActivity() {
         detectedFlowersTextView.text = "Detected Flower: $detectedFlower"
 
         // Receive and display flower-specific image and parameters
-        val flowerImageResId = intent.getIntExtra("flowerImage", R.drawable.default_flower)
+        val flowerImageResId = intent.getIntExtra("flowerImage", R.drawable.asteracare_logo)
         capturedFlowerImage.setImageResource(flowerImageResId)
 
         // Set click listener to open MainActivity
@@ -236,10 +266,16 @@ class HomeActivity : AppCompatActivity() {
                     if (bytes > 0) {
                         val receivedMessage = String(buffer, 0, bytes).trim()
                         Log.d(TAG, "Received: $receivedMessage")
-                        runOnUiThread {
-                            // Update only storage water level
-                            waterLevelStorageValue.text =
-                                "Storage Water Level: ${parseWaterLevel(receivedMessage)}%"
+
+                        if (receivedMessage.startsWith("STORAGE_WATER_LEVEL_LOW:")) {
+                            val parsed = parseWaterLevel(receivedMessage)
+                            if (parsed != "--") {
+                                runOnUiThread {
+                                    waterLevelStorageValue.text = "Storage Water Level: $parsed%"
+                                }
+                            }
+                        } else {
+                            Log.d(TAG, "Ignored irrelevant or incomplete data: $receivedMessage")
                         }
                     }
                 } catch (e: IOException) {
@@ -251,13 +287,11 @@ class HomeActivity : AppCompatActivity() {
         }
         // Parsing function specifically for storage water level
         private fun parseWaterLevel(data: String): String {
-            return if (data.startsWith("STORAGE_WATER_LEVEL_LOW:")) {
-                data.substringAfter("STORAGE_WATER_LEVEL_LOW:").toFloatOrNull()?.let {
-                    it.toString()
+            return data.substringAfter("STORAGE_WATER_LEVEL_LOW:")
+                .replace("%", "")
+                .toFloatOrNull()?.let {
+                    String.format("%.2f", it)
                 } ?: "--"
-            } else {
-                "--"
-            }
         }
 //        call to send data to remote device
         fun write(message: ByteArray) {
@@ -504,4 +538,19 @@ class HomeActivity : AppCompatActivity() {
         humidityValue.text = "Humidity: $humidity%"
         waterLevelFlowerValue.text = "Flower Water Level: $waterLevel%"
     }
+    private fun showWelcomeDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.welcome_dialog, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        val gotItButton = dialogView.findViewById<Button>(R.id.btnGotIt)
+        gotItButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
 }

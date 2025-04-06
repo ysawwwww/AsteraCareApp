@@ -352,7 +352,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
                 // Get flower parameters based on detected flower
                 val params = flowerParameters[detectedFlower] ?: FlowerParams(
-                    22f, 60f, 70f, 80f, R.drawable.default_flower
+                    22f, 60f, 70f, 80f, R.drawable.asteracare_logo
                 )
 
                 // Send captured image and flower-specific parameters
