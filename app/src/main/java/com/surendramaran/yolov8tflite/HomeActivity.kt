@@ -1,5 +1,7 @@
 package com.surendramaran.yolov8tflite
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -25,6 +27,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import java.io.IOException
 import java.io.InputStream
@@ -60,6 +63,8 @@ class HomeActivity : AppCompatActivity() {
     private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Replace with your own UUID
     private var acceptThread: AcceptThread? = null
     private var communicationThread: CommunicationThread? = null  // Declare at class leve
+    private lateinit var waterLevelLowIcon: ImageView
+    private lateinit var waterLevelStorageCard: LinearLayout
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -93,6 +98,47 @@ class HomeActivity : AppCompatActivity() {
                     android.Manifest.permission.ACCESS_FINE_LOCATION
                 ), 1001)
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1002)
+            }
+        }
+
+        waterLevelLowIcon = findViewById(R.id.waterLevelLowIcon)
+        waterLevelStorageCard = findViewById(R.id.waterLevelStorageCard)
+
+        // Example of displaying the in-app alert
+        if (currentWaterLevelStorage < 20) {  // Example threshold for low water level
+            waterLevelLowIcon.visibility = View.VISIBLE
+        }
+
+        waterLevelLowIcon.setOnClickListener {
+            // Inflate the custom dialog layout
+            val dialogView = layoutInflater.inflate(R.layout.water_level_warning_dialog, null)
+
+            // Build the alert dialog
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)  // Set the custom layout
+                .create()
+
+            // Find the button in the custom layout and set a click listener
+            dialogView.findViewById<Button>(R.id.btnGotItWaterLevel).setOnClickListener {
+                dialog.dismiss()  // Close the dialog when "Got it" is clicked
+            }
+
+            // Show the dialog
+            dialog.show()
+        }
+
+        val waterLevelStorageCard: LinearLayout = findViewById(R.id.waterLevelStorageCard)
+        if (currentWaterLevelStorage < 20) {
+            waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
+            waterLevelLowIcon.visibility = View.VISIBLE
+        } else {
+            waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
+            waterLevelLowIcon.visibility = View.GONE
         }
 
         val prefs = getSharedPreferences("AsteraCarePrefs", MODE_PRIVATE)
@@ -169,7 +215,6 @@ class HomeActivity : AppCompatActivity() {
         val temperature = intent.getFloatExtra("temperature", -1f)
         val humidity = intent.getFloatExtra("humidity", -1f)
         val waterLevelFlower = intent.getFloatExtra("waterLevelFlower", -1f)
-        val waterLevelStorage = intent.getFloatExtra("waterLevelStorage", -1f)
 
         currentTemperature = intent.getFloatExtra("temperature", -1f)
         currentHumidity = intent.getFloatExtra("humidity", -1f)
@@ -182,7 +227,6 @@ class HomeActivity : AppCompatActivity() {
         temperatureValue.text = "Temperature: ${if (temperature >= 0) "$temperature°C" else "--°C"}"
         humidityValue.text = "Humidity: ${if (humidity >= 0) "$humidity%" else "--%"}"
         waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower >= 0) "$waterLevelFlower%" else "--%"}"
-        waterLevelStorageValue.text = "Storage Water Level: ${if (waterLevelStorage >= 0) "$waterLevelStorage%" else "--%"}"
 
         communicationThread?.write("FLOWER:$currentDetectedFlower\n".toByteArray())
 
@@ -272,6 +316,14 @@ class HomeActivity : AppCompatActivity() {
                             if (parsed != "--") {
                                 runOnUiThread {
                                     waterLevelStorageValue.text = "Storage Water Level: $parsed%"
+                                    if (parsed.toFloat() < 20) {
+                                        waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
+                                        waterLevelLowIcon.visibility = View.VISIBLE
+                                        showWaterLevelLowNotification(applicationContext)
+                                    } else {
+                                        waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
+                                        waterLevelLowIcon.visibility = View.GONE
+                                    }
                                 }
                             }
                         } else {
@@ -313,6 +365,25 @@ class HomeActivity : AppCompatActivity() {
                 Log.e(TAG, "Error closing socket", e)
             }
         }
+    }
+
+    private fun showWaterLevelLowNotification(context: Context) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel("low_water_level_channel", "Water Level Alerts", NotificationManager.IMPORTANCE_HIGH)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(context, "low_water_level_channel")
+            .setContentTitle("Water Level Alert")
+            .setContentText("The storage water level is low. Please refill the water storage!")
+            .setSmallIcon(R.drawable.waves)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(1, notification)
     }
 
     override fun onDestroy() {
@@ -409,7 +480,6 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun showModeConfirmationDialog() {
         val newMode = if (isManualMode) "Automatic" else "Manual"

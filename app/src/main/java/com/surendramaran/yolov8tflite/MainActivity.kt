@@ -45,17 +45,16 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
     // Define flower-specific parameters in a map
     private val flowerParameters = mapOf(
-        "Sunflower" to FlowerParams(10f, 70f, 100f, 85f, R.drawable.sunflower),
-        "Gerbera" to FlowerParams(10f, 90f, 100f, 80f, R.drawable.gerbera),
-        "Aster" to FlowerParams(5f, 85f, 100f, 75f, R.drawable.aster),
-        "Chrysanthemum" to FlowerParams(3f, 90f, 100f, 78f, R.drawable.chrysanthemum)
+        "Sunflower" to FlowerParams(10f, 70f, 100f, R.drawable.sunflower),
+        "Gerbera" to FlowerParams(10f, 90f, 100f, R.drawable.gerbera),
+        "Aster" to FlowerParams(5f, 85f, 100f, R.drawable.aster),
+        "Chrysanthemum" to FlowerParams(3f, 90f, 100f, R.drawable.chrysanthemum)
     )
     // Define a data class to hold flower parameters
     data class FlowerParams(
         val temperature: Float,
         val humidity: Float,
         val waterLevelFlower: Float,
-        val waterLevelStorage: Float,
         val imageResId: Int
     )
 
@@ -144,7 +143,6 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
          temp: Float,
          humidity: Float,
          waterLevelFlower: Float,
-         waterLevelStorage: Float,
          flowerImageResId: Int,
          detectedFlower: String
     ){
@@ -158,7 +156,6 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
             putExtra("temperature", temp)
             putExtra("humidity", humidity)
             putExtra("waterLevelFlower", waterLevelFlower)
-            putExtra("waterLevelStorage", waterLevelStorage)
             putExtra("flowerImage", flowerImageResId)
             putExtra("detectedFlower", detectedFlower)
         }
@@ -352,7 +349,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
                 // Get flower parameters based on detected flower
                 val params = flowerParameters[detectedFlower] ?: FlowerParams(
-                    22f, 60f, 70f, 80f, R.drawable.asteracare_logo
+                    22f, 60f, 70f, R.drawable.asteracare_logo
                 )
 
                 // Send captured image and flower-specific parameters
@@ -362,7 +359,6 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                     params.temperature,
                     params.humidity,
                     params.waterLevelFlower,
-                    params.waterLevelStorage,
                     params.imageResId,
                     detectedFlower
                 )

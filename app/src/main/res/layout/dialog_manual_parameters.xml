@@ -98,7 +98,7 @@
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/water_percent" />
+            android:src="@drawable/cloud_percent" />
 
         <!-- Container for Parameter Name and Controls -->
         <LinearLayout
@@ -176,7 +176,7 @@
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/wave" />
+            android:src="@drawable/water" />
 
         <!-- Container for Parameter Name and Controls -->
         <LinearLayout

@@ -35,7 +35,12 @@
             android:textColor="@color/emerald_950"
             android:textStyle="bold"
             android:layout_weight="1" />
-
+        <ImageView
+            android:id="@+id/waterLevelLowIcon"
+            android:src="@drawable/water_alert"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
         <ImageView
             android:id="@+id/helpIcon"
             android:layout_width="wrap_content"
@@ -68,7 +73,7 @@
                 android:layout_height="200dp"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_placeholder"
+                android:src="@drawable/asteracare_logo"
                 />
 
             <!-- Detected Flower Name -->
@@ -105,7 +110,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="The Chamber"
+                    android:text="Chamber"
                     android:textSize="18sp"
                     android:textColor="@color/emerald_950"
                     android:textStyle="bold"
@@ -115,6 +120,7 @@
                 <!-- Mode Indicator -->
                 <TextView
                     android:id="@+id/modeIndicator"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Mode: Automatic"
@@ -222,7 +228,7 @@
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:src="@drawable/water_percent" />
+                        android:src="@drawable/cloud_percent" />
 
                     <TextView
                         android:id="@+id/humidityValue"
@@ -237,6 +243,7 @@
 
                 <!-- Water Level for Flower -->
                 <LinearLayout
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -248,7 +255,7 @@
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:src="@drawable/wave" />
+                        android:src="@drawable/water" />
 
                     <TextView
                         android:id="@+id/waterLevelFlowerValue"
@@ -263,6 +270,7 @@
 
                 <!-- Water Level for Storage -->
                 <LinearLayout
+                    android:id="@+id/waterLevelStorageCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -309,7 +317,7 @@
                 <!-- Add Mode Toggle and Send Button Here -->
                 <Button
                     android:id="@+id/modeToggleButton"
-                    android:visibility="gone"
+
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Switch to Manual"
