@@ -10,26 +10,26 @@
         android:id="@+id/dialogTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to AsteraCare! ✿"
+        android:text="𔓘 Welcome to AsteraCare! 𔓘"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/emerald_900" />
+        android:textColor="@color/emerald_950" />
 
     <TextView
         android:id="@+id/dialogMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="This app helps preserve Asteraceae flowers by recognizing the flower type with YOLOv8 and maintaining temperature, humidity, and hydration based on the ideal settings for the flower.
-                      \n\nRight now, we support Asters, Chrysanthemums, Gerberas, and Sunflowers — with more on the way!
-                      \n\nStart by classifying a flower so we can apply the best conditions to keep it fresh longer!"
+        android:text="This app helps keep Asteraceae flowers fresh by recognizing the flower type with YOLOv8 and automatically maintaining the temperature, humidity, and hydration inside the chamber.
+                      \n\nWe currently support Asters, Chrysanthemums, Gerberas, and Sunflowers — with more on the way!
+                      \n\nStart by connecting to the chamber, then classify a flower to apply the best conditions for lasting freshness!"
         android:layout_marginTop="8dp"
-        android:textColor="@color/emerald_900" />
+        android:textColor="@color/emerald_950" />
 
     <Button
         android:id="@+id/btnGotIt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="OK"
+        android:text="OK "
         android:layout_gravity="end"
         android:backgroundTint="@color/button_color"
         android:layout_marginTop="16dp"/>

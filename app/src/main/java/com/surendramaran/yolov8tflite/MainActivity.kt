@@ -30,7 +30,6 @@ import android.widget.Toast
 import java.io.ByteArrayOutputStream
 import java.net.Socket
 
-
 class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private lateinit var binding: ActivityMainBinding
     private val isFrontCamera = false
@@ -82,48 +81,6 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-
-        //click listener for capture button
-//        captureButton.setOnClickListener {
-//            val boundingBoxes = binding.overlay.getResults()
-//            if (boundingBoxes.isNotEmpty()) {
-//                val capturedBitmap = binding.viewFinder.bitmap
-//                if (capturedBitmap == null) {
-//                    Toast.makeText(this, "Error capturing image.", Toast.LENGTH_SHORT).show()
-//                    return@setOnClickListener
-//                }
-//                if (capturedBitmap != null) {
-//                    Log.d("CaptureButton", "Image captured successfully.")
-//
-//                    // Get the detected flower name (first detected one)
-//                    val detectedFlower = boundingBoxes[0].clsName
-//
-//                    // Retrieve correct flower parameters or fallback to default
-//                    val params = flowerParameters[detectedFlower] ?: FlowerParams(
-//                        22f, 60f, 70f, 80f, R.drawable.default_flower
-//                    )
-//
-//                    // Send image and correct flower parameters to HomeActivity
-//                    captureAndSendImage(
-//                        capturedBitmap,
-//                        "Automatic", // Default mode
-//                        params.temperature,
-//                        params.humidity,
-//                        params.waterLevelFlower,
-//                        params.waterLevelStorage,
-//                        params.imageResId,
-//                        detectedFlower
-//                    )
-//
-//                    showPopup(boundingBoxes.map { it.clsName }) // Show detected flowers in popup
-//                } else {
-//                    Log.e("CaptureButton", "Failed to capture image.")
-//                    Toast.makeText(this, "Error capturing image.", Toast.LENGTH_SHORT).show()
-//                }
-//            } else {
-//                Toast.makeText(this, "No objects detected.", Toast.LENGTH_SHORT).show()
-//            }
-//        }
 
         closePopup.setOnClickListener { hidePopup() }
         popupBackground.setOnClickListener { hidePopup() }

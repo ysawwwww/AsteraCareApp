@@ -13,8 +13,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -244,6 +247,17 @@ class HomeActivity : AppCompatActivity() {
         editParametersButton.setOnClickListener {
             showManualModeForm()
         }
+        if (detectedFlower == "Unknown Flower") {
+            modeToggleButton.visibility = View.GONE
+            editParametersButton.visibility = View.GONE
+            modeIndicator.visibility = View.GONE
+        } else {
+            modeToggleButton.visibility = View.VISIBLE
+            modeIndicator.visibility = View.VISIBLE
+            if (isManualMode) {
+                editParametersButton.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun startBluetoothServer() {
@@ -378,7 +392,7 @@ class HomeActivity : AppCompatActivity() {
         val notification = NotificationCompat.Builder(context, "low_water_level_channel")
             .setContentTitle("Water Level Alert")
             .setContentText("The storage water level is low. Please refill the water storage!")
-            .setSmallIcon(R.drawable.waves)
+            .setSmallIcon(R.drawable.water_alert)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
@@ -435,7 +449,7 @@ class HomeActivity : AppCompatActivity() {
         connectToToasterACARE()
     }
 
-    private fun connectToToasterACARE() {
+    fun connectToToasterACARE() {
         bluetoothAdapter?.cancelDiscovery() // Stop discovery before connecting
         val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
         if (!pairedDevices.isNullOrEmpty()) {
@@ -457,7 +471,10 @@ class HomeActivity : AppCompatActivity() {
                         return
                     } catch (e: Exception) {
                         Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
-//                        Toast.makeText(this, "Failed to connect: ${e.message}", Toast.LENGTH_SHORT).show()
+                       Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
+
+                        // Prompt user to connect to the chamber if connection fails
+                        promptToConnectToChamber()
                     }
                 }
             }
@@ -465,6 +482,34 @@ class HomeActivity : AppCompatActivity() {
             Log.d("Bluetooth", "AsteraCare device not found in paired devices.")
             Toast.makeText(this, "AsteraCare not paired. Please pair it first.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun promptToConnectToChamber() {
+        // Show an AlertDialog to prompt the user to connect the chamber
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Chamber Connection Required")
+            .setMessage("Please connect app to the chamber via Bluetooth. Click Connect to Chamber button.")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                // Optionally, trigger the pairing process or discovery again if needed
+                startDiscovery()
+            }
+            .setCancelable(false) // Prevent dismissing without action
+            .show()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            // Access the title and change the color
+            val titleTextView = dialog.findViewById<TextView>(android.R.id.title)
+            titleTextView?.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
+
+            // Access and change the message text color
+            val messageTextView = dialog.findViewById<TextView>(android.R.id.message)
+            messageTextView?.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
+
+            // Access and change the positive button text color
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
+        }, 100) // Delay of 100 ms to ensure dialog initialization
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -587,6 +632,9 @@ class HomeActivity : AppCompatActivity() {
         sendManualButton.setOnClickListener {
             // Get the updated values before sending
             val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER_FLOWER:$waterLevelFlowerValueInput"
+            currentTemperature = tempInput
+            currentHumidity = humidityInput
+            currentWaterLevelFlower = waterLevelFlowerValueInput
 
             if (communicationThread != null) {
                 Log.d("Bluetooth", "Sending message: $messageToSend")
