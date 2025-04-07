@@ -35,6 +35,9 @@ import androidx.core.content.ContextCompat
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 class HomeActivity : AppCompatActivity() {
@@ -265,6 +268,18 @@ class HomeActivity : AppCompatActivity() {
             if (isManualMode) {
                 editParametersButton.visibility = View.VISIBLE
             }
+        }
+        if (detectedFlower != "Unknown Flower") {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            val prefs = getSharedPreferences("AsteraCarePrefs", MODE_PRIVATE)
+            val historySet = prefs.getStringSet("detectionHistory", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+            historySet.add("$timestamp - $detectedFlower")
+            prefs.edit().putStringSet("detectionHistory", historySet).apply()
+        }
+        val historyIcon = findViewById<ImageView>(R.id.historyIcon)
+        historyIcon.setOnClickListener {
+            val intent = Intent(this, HistoryActivity::class.java)
+            startActivity(intent)
         }
     }
 

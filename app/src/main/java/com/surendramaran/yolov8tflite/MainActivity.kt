@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private var cameraProvider: ProcessCameraProvider? = null
     private lateinit var detector: Detector
     private lateinit var captureButton: Button // Capture button variable
+    private var isDetectionHandled = false
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -268,6 +269,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
     override fun onResume() {
         super.onResume()
+        isDetectionHandled = false // ✅ Reset detection on resume
         if (allPermissionsGranted()){
             startCamera()
         } else {
@@ -295,6 +297,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         runOnUiThread {
+            if (isDetectionHandled) return@runOnUiThread // Skip if already detected once
             binding.inferenceTime.text = "${inferenceTime}ms"
             binding.overlay.apply {
                 setResults(boundingBoxes)
@@ -309,6 +312,9 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                     22f, 60f, 70f, R.drawable.asteracare_logo
                 )
 
+                // Prevent further detection
+                isDetectionHandled = true
+
                 // Send captured image and flower-specific parameters
                 captureAndSendImage(
                     capturedBitmap,
@@ -319,8 +325,8 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                     params.imageResId,
                     detectedFlower
                 )
+                Toast.makeText(this, "$detectedFlower detected and successfully sent to chamber", Toast.LENGTH_SHORT).show()
             }
         }
     }
-
 }

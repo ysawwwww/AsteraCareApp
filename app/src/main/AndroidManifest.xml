@@ -50,6 +50,7 @@
         </activity>
         <!-- MainActivity (Camera) -->
         <activity android:name=".MainActivity" />
+        <activity android:name=".HistoryActivity" />
     </application>
 
 </manifest>
