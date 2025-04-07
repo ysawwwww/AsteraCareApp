@@ -68,6 +68,14 @@ class HomeActivity : AppCompatActivity() {
     private var communicationThread: CommunicationThread? = null  // Declare at class leve
     private lateinit var waterLevelLowIcon: ImageView
     private lateinit var waterLevelStorageCard: LinearLayout
+    val minTemperature = 3f
+    val maxTemperature = 10f
+
+    val minHumidity = 70f
+    val maxHumidity = 90f
+
+    val minWaterLevel = 100f // Assuming it's fixed to 100% for now
+    val maxWaterLevel = 100f
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -583,39 +591,39 @@ class HomeActivity : AppCompatActivity() {
         humidityValue.text = "$humidityInput%"
         waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
         decreaseTemp.setOnClickListener {
-            if (tempInput > 0) {
+            if (tempInput > minTemperature) {
                 tempInput -= 1
                 temperatureValue.text = "$tempInput°C"
             }
         }
         increaseTemp.setOnClickListener {
-            if (tempInput < 50) { // Max range 50°C
+            if (tempInput < maxTemperature) {
                 tempInput += 1
                 temperatureValue.text = "$tempInput°C"
             }
         }
         // Humidity controls
         decreaseHumidity.setOnClickListener {
-            if (humidityInput > 0) {
+            if (humidityInput > minHumidity) {
                 humidityInput -= 1
                 humidityValue.text = "$humidityInput%"
             }
         }
         increaseHumidity.setOnClickListener {
-            if (humidityInput < 100) { // Max 100%
+            if (humidityInput < maxHumidity) {
                 humidityInput += 1
                 humidityValue.text = "$humidityInput%"
             }
         }
         // Flower water level
         decreaseWaterLevelFlowerValue.setOnClickListener {
-            if (waterLevelFlowerValueInput > 0) {
+            if (waterLevelFlowerValueInput > minWaterLevel) {
                 waterLevelFlowerValueInput -= 1
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
         }
         increaseWaterLevelFlowerValue.setOnClickListener {
-            if (waterLevelFlowerValueInput < 100) { // Max 100%
+            if (waterLevelFlowerValueInput < maxWaterLevel) {
                 waterLevelFlowerValueInput += 1
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
