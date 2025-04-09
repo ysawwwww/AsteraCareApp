@@ -69,6 +69,15 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var waterLevelLowIcon: ImageView
     private lateinit var waterLevelStorageCard: LinearLayout
 
+    val minTemperature = 3f
+    val maxTemperature = 10f
+
+    val minHumidity = 70f
+    val maxHumidity = 90f
+
+    val minWaterLevel = 100f // Assuming it's fixed to 100% for now
+    val maxWaterLevel = 100f
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action: String? = intent.action
@@ -325,16 +334,17 @@ class HomeActivity : AppCompatActivity() {
                         val receivedMessage = String(buffer, 0, bytes).trim()
                         Log.d(TAG, "Received: $receivedMessage")
 
-                        if (receivedMessage.startsWith("STORAGE_WATER_LEVEL_LOW:")) {
+                        if (receivedMessage.startsWith("STORAGE_WATER_LEVEL:")) {
                             val parsed = parseWaterLevel(receivedMessage)
                             if (parsed != "--") {
                                 runOnUiThread {
-                                    waterLevelStorageValue.text = "Storage Water Level: $parsed%"
-                                    if (parsed.toFloat() < 20) {
+                                    if (parsed.toFloat() < 1) {
+                                        waterLevelStorageValue.text = "Storage Water Level: \nRefill Needed"
                                         waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
                                         waterLevelLowIcon.visibility = View.VISIBLE
                                         showWaterLevelLowNotification(applicationContext)
                                     } else {
+                                        waterLevelStorageValue.text = "Storage Water Level: \nSufficient"
                                         waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
                                         waterLevelLowIcon.visibility = View.GONE
                                     }
@@ -353,7 +363,7 @@ class HomeActivity : AppCompatActivity() {
         }
         // Parsing function specifically for storage water level
         private fun parseWaterLevel(data: String): String {
-            return data.substringAfter("STORAGE_WATER_LEVEL_LOW:")
+            return data.substringAfter("STORAGE_WATER_LEVEL:")
                 .replace("%", "")
                 .toFloatOrNull()?.let {
                     String.format("%.2f", it)
@@ -583,39 +593,39 @@ class HomeActivity : AppCompatActivity() {
         humidityValue.text = "$humidityInput%"
         waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
         decreaseTemp.setOnClickListener {
-            if (tempInput > 0) {
+            if (tempInput > minTemperature) {
                 tempInput -= 1
                 temperatureValue.text = "$tempInput°C"
             }
         }
         increaseTemp.setOnClickListener {
-            if (tempInput < 50) { // Max range 50°C
+            if (tempInput < maxTemperature) {
                 tempInput += 1
                 temperatureValue.text = "$tempInput°C"
             }
         }
         // Humidity controls
         decreaseHumidity.setOnClickListener {
-            if (humidityInput > 0) {
+            if (humidityInput > minHumidity) {
                 humidityInput -= 1
                 humidityValue.text = "$humidityInput%"
             }
         }
         increaseHumidity.setOnClickListener {
-            if (humidityInput < 100) { // Max 100%
+            if (humidityInput < maxHumidity) {
                 humidityInput += 1
                 humidityValue.text = "$humidityInput%"
             }
         }
         // Flower water level
         decreaseWaterLevelFlowerValue.setOnClickListener {
-            if (waterLevelFlowerValueInput > 0) {
+            if (waterLevelFlowerValueInput > minWaterLevel) {
                 waterLevelFlowerValueInput -= 1
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
         }
         increaseWaterLevelFlowerValue.setOnClickListener {
-            if (waterLevelFlowerValueInput < 100) { // Max 100%
+            if (waterLevelFlowerValueInput < maxWaterLevel) {
                 waterLevelFlowerValueInput += 1
                 waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
             }
@@ -631,7 +641,8 @@ class HomeActivity : AppCompatActivity() {
 
         sendManualButton.setOnClickListener {
             // Get the updated values before sending
-            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER_FLOWER:$waterLevelFlowerValueInput"
+//            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER_FLOWER:$waterLevelFlowerValueInput"
+            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput"
             currentTemperature = tempInput
             currentHumidity = humidityInput
             currentWaterLevelFlower = waterLevelFlowerValueInput
