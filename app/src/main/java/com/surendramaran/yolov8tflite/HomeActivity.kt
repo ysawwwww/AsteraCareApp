@@ -25,6 +25,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -35,6 +36,9 @@ import androidx.core.content.ContextCompat
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 class HomeActivity : AppCompatActivity() {
@@ -68,6 +72,8 @@ class HomeActivity : AppCompatActivity() {
     private var communicationThread: CommunicationThread? = null  // Declare at class leve
     private lateinit var waterLevelLowIcon: ImageView
     private lateinit var waterLevelStorageCard: LinearLayout
+    private lateinit var consoleTextView: TextView
+    private var consoleLog = StringBuilder()
 
     val minTemperature = 3f
     val maxTemperature = 10f
@@ -267,11 +273,52 @@ class HomeActivity : AppCompatActivity() {
                 editParametersButton.visibility = View.VISIBLE
             }
         }
+        val consoleIcon: ImageView = findViewById(R.id.consoleIcon)
+
+        consoleIcon.setOnClickListener {
+            showConsoleDialog()
+        }
     }
 
     private fun startBluetoothServer() {
         acceptThread = AcceptThread()
         acceptThread?.start()
+    }
+
+    private fun showConsoleDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.console_dialog, null)
+        consoleTextView = dialogView.findViewById(R.id.consoleText)
+        consoleTextView.text = consoleLog.toString()
+        val scrollView = dialogView.findViewById<ScrollView>(R.id.consoleScroll)
+
+        // Scroll to bottom after layout is done
+        consoleTextView.post {
+            scrollView.fullScroll(View.FOCUS_DOWN)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Console Log")
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
+    private var lastConsoleUpdate = 0L
+    private val consoleUpdateInterval = 5000L // update every 5 seconds
+
+    private fun appendToConsole(message: String) {
+        val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+        val isSensorUpdate = message.startsWith("ACTUAL_TEMP") || message.startsWith("ACTUAL_HUMIDITY")
+
+        if (isSensorUpdate) {
+            val now = System.currentTimeMillis()
+            if (now - lastConsoleUpdate >= consoleUpdateInterval) {
+                lastConsoleUpdate = now
+                consoleLog.append("[$timestamp] $message\n")
+            }
+        } else {
+            consoleLog.append("[$timestamp] $message\n")
+        }
     }
 
     private inner class AcceptThread : Thread() {
@@ -332,6 +379,7 @@ class HomeActivity : AppCompatActivity() {
                     val bytes = inputStream.read(buffer)
                     if (bytes > 0) {
                         val receivedMessage = String(buffer, 0, bytes).trim()
+                        appendToConsole(receivedMessage)
                         Log.d(TAG, "Received: $receivedMessage")
 
                         if (receivedMessage.startsWith("STORAGE_WATER_LEVEL:")) {
@@ -364,10 +412,14 @@ class HomeActivity : AppCompatActivity() {
         // Parsing function specifically for storage water level
         private fun parseWaterLevel(data: String): String {
             return data.substringAfter("STORAGE_WATER_LEVEL:")
-                .replace("%", "")
-                .toFloatOrNull()?.let {
-                    String.format("%.2f", it)
-                } ?: "--"
+                .trim()
+                .let {
+                    when (it) {
+                        "0" -> "0.00" // LOW (refill needed)
+                        "1" -> "100.00" // HIGH (sufficient)
+                        else -> "--"
+                    }
+                }
         }
 //        call to send data to remote device
         fun write(message: ByteArray) {
