@@ -87,11 +87,13 @@
         android:id="@+id/popupTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Detected Flowers"
+        android:text="Unknown Flower Detected"
         android:textSize="18sp"
         android:textStyle="bold"
         android:paddingBottom="8dp"
-        android:textColor="@color/black"/>
+        android:textColor="@color/emerald_950"
+        android:layout_gravity="center"
+        />
 
     <!-- Detected Flowers List -->
     <TextView
@@ -100,7 +102,7 @@
         android:layout_height="wrap_content"
         android:text="No flowers detected."
         android:textSize="16sp"
-        android:textColor="@color/black"
+        android:textColor="@color/emerald_950"
         android:paddingBottom="16dp"/>
 
     <!-- Send Button -->
@@ -108,15 +110,18 @@
         android:id="@+id/sendButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Send"/>
+        android:text="Send"
+        android:visibility="gone"/>
 
     <!-- Close Button -->
     <Button
         android:id="@+id/closePopup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Close"
-        android:layout_marginTop="8dp"/>
+        android:text="Got it"
+        android:backgroundTint="@color/button_color"
+        android:layout_marginTop="2dp"
+        android:layout_gravity="center"/>
 </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

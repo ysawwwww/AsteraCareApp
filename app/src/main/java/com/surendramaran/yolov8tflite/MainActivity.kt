@@ -301,12 +301,26 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                 invalidate()
             }
             if (boundingBoxes.isNotEmpty()) {
-                val detectedFlower = boundingBoxes[0].clsName // Get first detected flower
+                val topBox = boundingBoxes.maxByOrNull { it.cnf }
+                val detectedFlower = topBox?.clsName ?: return@runOnUiThread
+
                 val capturedBitmap = binding.viewFinder.bitmap ?: return@runOnUiThread
+
+                // Check if the flower is recognized
+                if (!flowerParameters.containsKey(detectedFlower)) {
+                    // Show custom message for unknown flower
+                    showPopup(
+                        listOf(
+                            "This flower is not yet supported by the app.",
+                            "Future updates may include it. Stay tuned!"
+                        )
+                    )
+                    return@runOnUiThread
+                }
 
                 // Get flower parameters based on detected flower
                 val params = flowerParameters[detectedFlower] ?: FlowerParams(
-                    22f, 60f, 70f, R.drawable.asteracare_logo
+                    0f, 0f, 0f, R.drawable.asteracare_logo
                 )
 
                 // Send captured image and flower-specific parameters

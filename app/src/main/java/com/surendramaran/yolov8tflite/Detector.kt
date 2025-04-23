@@ -3,6 +3,7 @@ package com.surendramaran.yolov8tflite
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.util.Log
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
@@ -100,8 +101,8 @@ class Detector(
 
 
     private fun bestBox(array: FloatArray) : List<BoundingBox>? {
-
         val boundingBoxes = mutableListOf<BoundingBox>()
+        val TAG = "DetectorDebug" // Logging tag
 
         for (c in 0 until numElements) {
             var maxConf = -1.0f
@@ -118,7 +119,7 @@ class Detector(
             }
 
             if (maxConf > CONFIDENCE_THRESHOLD) {
-                val clsName = labels[maxIdx]
+                val clsName = if (maxConf >= 0.8f) labels[maxIdx] else "Unknown"
                 val cx = array[c] // 0
                 val cy = array[c + numElements] // 1
                 val w = array[c + numElements * 2]
@@ -143,7 +144,16 @@ class Detector(
         }
 
         if (boundingBoxes.isEmpty()) return null
+        // 🔍 LOG: Print all confidence levels
+        for (box in boundingBoxes) {
+            Log.d(TAG, "Detected: ${box.clsName} with confidence ${"%.2f".format(box.cnf)}")
+        }
 
+        // 🔍 LOG: Print highest confidence
+        val highestBox = boundingBoxes.maxByOrNull { it.cnf }
+        highestBox?.let {
+            Log.d(TAG, "Highest Confidence: ${it.clsName} at ${"%.2f".format(it.cnf)}")
+        }
         return applyNMS(boundingBoxes)
     }
 
