@@ -25,6 +25,7 @@ import java.util.concurrent.Executors
 import android.widget.Button
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import java.io.ByteArrayOutputStream
@@ -39,6 +40,10 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private var cameraProvider: ProcessCameraProvider? = null
     private lateinit var detector: Detector
     private lateinit var captureButton: Button // Capture button variable
+    private fun setFlashState(enable: Boolean) {
+        camera?.cameraControl?.enableTorch(enable)
+    }
+
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -81,6 +86,12 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        val flashSwitch = findViewById<Switch>(R.id.flashSwitch)
+
+        flashSwitch.setOnCheckedChangeListener { _, isChecked ->
+            setFlashState(isChecked) // Enable or disable the flash based on the switch state
+        }
 
         closePopup.setOnClickListener { hidePopup() }
         popupBackground.setOnClickListener { hidePopup() }

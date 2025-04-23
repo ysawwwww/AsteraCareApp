@@ -32,6 +32,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintDimensionRatio="3:4"/>
 
+    <!-- Flashlight Switch with Icon -->
+    <Switch
+        android:id="@+id/flashSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable Flash"
+        android:checked="false"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:thumbTint="@color/emerald_600"
+        android:trackTint="@color/emerald_600"/>
+
     <!-- Inference Time Display (Top Right) -->
     <TextView
         android:id="@+id/inferenceTime"
@@ -39,7 +55,8 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:layout_margin="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         tools:text="100ms"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
