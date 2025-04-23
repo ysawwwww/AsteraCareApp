@@ -107,7 +107,6 @@
                 android:backgroundTint="@color/button_color"
                 />
 
-            <!-- Mode Indicator and Chamber Section Title -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -116,15 +115,33 @@
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- Group Chamber Title + Icon -->
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Chamber"
-                    android:textSize="18sp"
-                    android:textColor="@color/emerald_950"
-                    android:textStyle="bold"
-                    android:paddingBottom="0dp"
-                    android:layout_weight="1"/>
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chamber"
+                        android:textSize="18sp"
+                        android:textColor="@color/emerald_950"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/switchParamsIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/swap_horizontal"
+                        android:contentDescription="Switch Parameters"
+                        android:padding="6dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
 
                 <!-- Mode Indicator -->
                 <TextView
@@ -134,10 +151,9 @@
                     android:text="Mode: Automatic"
                     android:textColor="@android:color/holo_green_dark"
                     android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingEnd="0dp" />
-
+                    android:textStyle="bold" />
             </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/manualModeLayout"
                 android:layout_width="match_parent"
@@ -191,117 +207,218 @@
 <!--                    android:visibility="gone" />-->
             </LinearLayout>
             <!-- Chamber Parameters Section -->
+            <ViewSwitcher
+                android:id="@+id/parameterSwitcher"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Expected/ Predefined Parameters View -->
+                <LinearLayout
+                    android:id="@+id/predefinedParams"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Temperature Card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/thermometer" />
+
+                        <TextView
+                            android:id="@+id/temperatureValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Temperature: --°C"
+                            android:textColor="@color/emerald_950"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Humidity Card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/cloud_percent" />
+
+                        <TextView
+                            android:id="@+id/humidityValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Humidity: --%"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:textColor="@color/emerald_950"
+                            android:layout_marginStart="12dp" />
+                    </LinearLayout>
+
+                    <!-- Water Level for Flower -->
+                    <LinearLayout
+                        android:visibility="gone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/water" />
+
+                        <TextView
+                            android:id="@+id/waterLevelFlowerValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Flower Water Level: --%"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/emerald_950"
+                            android:layout_marginStart="12dp" />
+                    </LinearLayout>
+
+                    <!-- Water Level for Storage -->
+                    <LinearLayout
+                        android:id="@+id/waterLevelStorageCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/waves" />
+
+                        <TextView
+                            android:id="@+id/waterLevelStorageValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Storage Water Level: --%"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/emerald_950"
+                            android:layout_marginStart="12dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Actual ESP32 Readings View -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Actual Temperature -->
+                    <LinearLayout
+                        android:id="@+id/actualParams"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/thermometer" />
+
+                        <TextView
+                            android:id="@+id/actualTemperatureValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Actual Temperature: --°C"
+                            android:textColor="@color/emerald_950"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Actual Humidity -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/cloud_percent" />
+
+                        <TextView
+                            android:id="@+id/actualHumidityValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Actual Humidity: --%"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:textColor="@color/emerald_950"
+                            android:layout_marginStart="12dp" />
+                    </LinearLayout>
+
+                    <!-- Water Level from ESP32 -->
+                    <LinearLayout
+                        android:id="@+id/actualwaterLevelStorageCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:background="@drawable/parameter_card"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/waves" />
+
+                        <TextView
+                            android:id="@+id/actualWaterLevelStorageValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Storage Water Level: --%"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/emerald_950"
+                            android:layout_marginStart="12dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </ViewSwitcher>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingTop="0dp">
-
-                <!-- Temperature Card -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:background="@drawable/parameter_card"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/thermometer" />
-
-                    <TextView
-                        android:id="@+id/temperatureValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="Temperature: --°C"
-                        android:textColor="@color/emerald_950"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <!-- Humidity Card -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:background="@drawable/parameter_card"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/cloud_percent" />
-
-                    <TextView
-                        android:id="@+id/humidityValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Humidity: --%"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="@color/emerald_950"
-                        android:layout_marginStart="12dp" />
-                </LinearLayout>
-
-                <!-- Water Level for Flower -->
-                <LinearLayout
-                    android:visibility="gone"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:background="@drawable/parameter_card"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/water" />
-
-                    <TextView
-                        android:id="@+id/waterLevelFlowerValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Flower Water Level: --%"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/emerald_950"
-                        android:layout_marginStart="12dp" />
-                </LinearLayout>
-
-                <!-- Water Level for Storage -->
-                <LinearLayout
-                    android:id="@+id/waterLevelStorageCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:background="@drawable/parameter_card"
-                    android:gravity="center_vertical"
-                    android:minHeight="64dp">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/waves" />
-
-                    <TextView
-                        android:id="@+id/waterLevelStorageValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Storage Water Level: --%"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/emerald_950"
-                        android:layout_marginStart="12dp" />
-                </LinearLayout>
                 <Button
                     android:id="@+id/buttonConnectChamber"
                     android:layout_width="match_parent"

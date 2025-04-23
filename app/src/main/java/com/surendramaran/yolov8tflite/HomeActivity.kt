@@ -28,6 +28,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ViewSwitcher
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -48,6 +49,9 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var humidityValue: TextView
     private lateinit var waterLevelFlowerValue: TextView
     private lateinit var waterLevelStorageValue: TextView
+    private lateinit var actualTemperatureValue: TextView
+    private lateinit var actualHumidityValue: TextView
+    private lateinit var actualWaterLevelStorageValue: TextView
     private var currentTemperature = -1f
     private var currentHumidity = -1f
     private var currentWaterLevelFlower = -1f
@@ -72,122 +76,61 @@ class HomeActivity : AppCompatActivity() {
     private var communicationThread: CommunicationThread? = null  // Declare at class leve
     private lateinit var waterLevelLowIcon: ImageView
     private lateinit var waterLevelStorageCard: LinearLayout
+    private lateinit var actualwaterLevelStorageCard: LinearLayout
     private lateinit var consoleTextView: TextView
     private var consoleLog = StringBuilder()
-
     val minTemperature = 3f
     val maxTemperature = 10f
-
     val minHumidity = 70f
     val maxHumidity = 90f
-
     val minWaterLevel = 100f // Assuming it's fixed to 100% for now
     val maxWaterLevel = 100f
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action: String? = intent.action
-            if (BluetoothDevice.ACTION_FOUND == action) {
-                val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+            if (BluetoothDevice.ACTION_FOUND == action) { val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 val deviceName = device?.name ?: "Unknown"
                 val deviceAddress = device?.address // MAC Address
-                Log.d("Bluetooth", "Discovered Device: $deviceName - $deviceAddress")
-            }
-        }
-    }
+                Log.d("Bluetooth", "Discovered Device: $deviceName - $deviceAddress") } } }
     
-    // Move the Companion Object **Outside** the CommunicationThread class
-    private companion object {
-        private const val TAG = "CommunicationThread"
-    }
+    private companion object { private const val TAG = "CommunicationThread" }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12+
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-                ActivityCompat.requestPermissions(this, arrayOf(
-                    android.Manifest.permission.BLUETOOTH_CONNECT,
-                    android.Manifest.permission.BLUETOOTH_SCAN,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
-                ), 1001)
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1002)
-            }
-        }
-
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) { ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.ACCESS_FINE_LOCATION), 1001) } }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) { ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1002) } }
         waterLevelLowIcon = findViewById(R.id.waterLevelLowIcon)
         waterLevelStorageCard = findViewById(R.id.waterLevelStorageCard)
-
-        // Example of displaying the in-app alert
-        if (currentWaterLevelStorage < 20) {  // Example threshold for low water level
-            waterLevelLowIcon.visibility = View.VISIBLE
-        }
-
-        waterLevelLowIcon.setOnClickListener {
-            // Inflate the custom dialog layout
-            val dialogView = layoutInflater.inflate(R.layout.water_level_warning_dialog, null)
-
-            // Build the alert dialog
+        actualwaterLevelStorageCard = findViewById(R.id.actualwaterLevelStorageCard)
+        if (currentWaterLevelStorage < 20) { waterLevelLowIcon.visibility = View.VISIBLE }
+        waterLevelLowIcon.setOnClickListener { val dialogView = layoutInflater.inflate(R.layout.water_level_warning_dialog, null)
             val dialog = AlertDialog.Builder(this)
                 .setView(dialogView)  // Set the custom layout
                 .create()
-
-            // Find the button in the custom layout and set a click listener
-            dialogView.findViewById<Button>(R.id.btnGotItWaterLevel).setOnClickListener {
-                dialog.dismiss()  // Close the dialog when "Got it" is clicked
-            }
-
-            // Show the dialog
-            dialog.show()
-        }
-
+            dialogView.findViewById<Button>(R.id.btnGotItWaterLevel).setOnClickListener { dialog.dismiss() }
+            dialog.show() }
         val waterLevelStorageCard: LinearLayout = findViewById(R.id.waterLevelStorageCard)
-        if (currentWaterLevelStorage < 20) {
-            waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
-            waterLevelLowIcon.visibility = View.VISIBLE
-        } else {
-            waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
-            waterLevelLowIcon.visibility = View.GONE
-        }
-
+        val actualwaterLevelStorageCard: LinearLayout = findViewById(R.id.actualwaterLevelStorageCard)
+        if (currentWaterLevelStorage < 20) { waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
+            waterLevelLowIcon.visibility = View.VISIBLE } else { waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
+            waterLevelLowIcon.visibility = View.GONE }
         val prefs = getSharedPreferences("AsteraCarePrefs", MODE_PRIVATE)
         val hasSeenDialog = prefs.getBoolean("hasSeenWelcome", false)
-
-        if (!hasSeenDialog) {
-            showWelcomeDialog()
-            prefs.edit().putBoolean("hasSeenWelcome", true).apply()
-        }
-
+        if (!hasSeenDialog) { showWelcomeDialog()
+            prefs.edit().putBoolean("hasSeenWelcome", true).apply() }
         val helpIcon = findViewById<ImageView>(R.id.helpIcon)
-        helpIcon.setOnClickListener {
-            showWelcomeDialog()
-        }
-
+        helpIcon.setOnClickListener { showWelcomeDialog() }
         // Initialize Bluetooth
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
         buttonConnectChamber = findViewById(R.id.buttonConnectChamber)
-
-        buttonConnectChamber.setOnClickListener {
-            Log.d("Bluetooth", "Connect Chamber button clicked")
-            checkAndEnableBluetooth()
-        }
-
+        buttonConnectChamber.setOnClickListener { Log.d("Bluetooth", "Connect Chamber button clicked")
+            checkAndEnableBluetooth() }
         // Check if the device supports Bluetooth
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_LONG).show()
-        } else {
-            checkAndEnableBluetooth()
-        }
+        if (bluetoothAdapter == null) { Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_LONG).show() } else { checkAndEnableBluetooth() }
 
         startBluetoothServer()
 
@@ -217,16 +160,25 @@ class HomeActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         //        putting dis here just to be sure lolol
-            connectToToasterACARE()
-        }
+            connectToToasterACARE() }
 
         // Receive and display captured image if available
         val byteArray = intent.getByteArrayExtra("capturedImage")
         val detectedFlowers = intent.getStringExtra("detectedFlowers")
-        if (byteArray != null) {
-            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-            capturedFlowerImage.setImageBitmap(bitmap)
-        }
+        if (byteArray != null) { val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            capturedFlowerImage.setImageBitmap(bitmap) }
+
+        val switchIcon = findViewById<ImageView>(R.id.switchParamsIcon)
+        val viewSwitcher = findViewById<ViewSwitcher>(R.id.parameterSwitcher)
+        var showingActual = false
+
+        switchIcon.setOnClickListener {
+            viewSwitcher.showNext() // Switch the view
+            showingActual = !showingActual}
+
+        actualTemperatureValue = findViewById(R.id.actualTemperatureValue)
+        actualHumidityValue = findViewById(R.id.actualHumidityValue)
+        actualWaterLevelStorageValue = findViewById(R.id.actualWaterLevelStorageValue)
 
         // Receive and display parameter values
         val mode = intent.getStringExtra("mode") ?: "Unknown"
@@ -254,14 +206,10 @@ class HomeActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_manual_parameters, null)
         sendManualButton = dialogView.findViewById<Button>(R.id.sendManualButton)
 
-        modeToggleButton.setOnClickListener {
-            showModeConfirmationDialog()
-        }
+        modeToggleButton.setOnClickListener { showModeConfirmationDialog() }
 
         editParametersButton = findViewById(R.id.editParametersButton)
-        editParametersButton.setOnClickListener {
-            showManualModeForm()
-        }
+        editParametersButton.setOnClickListener { showManualModeForm() }
         if (detectedFlower == "Unknown Flower") {
             modeToggleButton.visibility = View.GONE
             editParametersButton.visibility = View.GONE
@@ -269,21 +217,13 @@ class HomeActivity : AppCompatActivity() {
         } else {
             modeToggleButton.visibility = View.VISIBLE
             modeIndicator.visibility = View.VISIBLE
-            if (isManualMode) {
-                editParametersButton.visibility = View.VISIBLE
-            }
-        }
+            if (isManualMode) { editParametersButton.visibility = View.VISIBLE } }
         val consoleIcon: ImageView = findViewById(R.id.consoleIcon)
-
-        consoleIcon.setOnClickListener {
-            showConsoleDialog()
-        }
-    }
+        consoleIcon.setOnClickListener { showConsoleDialog() } }
 
     private fun startBluetoothServer() {
         acceptThread = AcceptThread()
-        acceptThread?.start()
-    }
+        acceptThread?.start() }
 
     private fun showConsoleDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.console_dialog, null)
@@ -292,16 +232,13 @@ class HomeActivity : AppCompatActivity() {
         val scrollView = dialogView.findViewById<ScrollView>(R.id.consoleScroll)
 
         // Scroll to bottom after layout is done
-        consoleTextView.post {
-            scrollView.fullScroll(View.FOCUS_DOWN)
-        }
+        consoleTextView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
 
         AlertDialog.Builder(this)
             .setTitle("Console Log")
             .setView(dialogView)
             .setPositiveButton("Close", null)
-            .show()
-    }
+            .show() }
 
     private var lastConsoleUpdate = 0L
     private val consoleUpdateInterval = 5000L // update every 5 seconds
@@ -315,18 +252,10 @@ class HomeActivity : AppCompatActivity() {
             if (now - lastConsoleUpdate >= consoleUpdateInterval) {
                 lastConsoleUpdate = now
                 consoleLog.append("[$timestamp] $message\n")
-            }
-        } else {
-            consoleLog.append("[$timestamp] $message\n")
-        }
-    }
+            } } else { consoleLog.append("[$timestamp] $message\n") } }
 
     private inner class AcceptThread : Thread() {
-
-        private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(NAME, MY_UUID)
-        }
-
+        private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) { bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(NAME, MY_UUID) }
         override fun run() {
             var shouldLoop = true
             while (shouldLoop) {
@@ -336,36 +265,22 @@ class HomeActivity : AppCompatActivity() {
                 } catch (e: IOException) {
                     Log.e(TAG, "Socket's accept() method failed", e)
                     shouldLoop = false
-                    null
-                }
-
+                    null }
                 socket?.also {
                     Log.d(TAG, "Device connected: ${it.remoteDevice.name}")
                     manageConnectedSocket(it)
                     mmServerSocket?.close()
-                    shouldLoop = false
-                }
-            }
-        }
+                    shouldLoop = false } } }
 
         fun cancel() {
-            try {
-                mmServerSocket?.close()
-            } catch (e: IOException) {
-                Log.e(TAG, "Could not close the connect socket", e)
-            }
-        }
-    }
+            try { mmServerSocket?.close()
+            } catch (e: IOException) { Log.e(TAG, "Could not close the connect socket", e) } } }
 
     private fun manageConnectedSocket(socket: BluetoothSocket) {
         Log.d(TAG, "Connected to device: ${socket.remoteDevice.name}")
         // Start a separate thread for communication
         communicationThread = CommunicationThread(socket) // Pass the socket here
-        communicationThread?.start()
-//        // Send a test message to the connected device
-//        val testMessage = "ASTERACARE LETS GOOOOOOOOOOOOOOO!"
-//        communicationThread?.write(testMessage.toByteArray())
-    }
+        communicationThread?.start() }
 
     private inner class CommunicationThread(private val socket: BluetoothSocket) : Thread() {
         private val inputStream: InputStream = socket.inputStream
@@ -388,17 +303,42 @@ class HomeActivity : AppCompatActivity() {
                                 runOnUiThread {
                                     if (parsed.toFloat() < 1) {
                                         waterLevelStorageValue.text = "Storage Water Level: \nRefill Needed"
+                                        actualWaterLevelStorageValue.text = "Actual Storage Water Level: \nRefill Needed"
                                         waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
+                                        actualwaterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card_red)
                                         waterLevelLowIcon.visibility = View.VISIBLE
                                         showWaterLevelLowNotification(applicationContext)
                                     } else {
                                         waterLevelStorageValue.text = "Storage Water Level: \nSufficient"
+                                        actualWaterLevelStorageValue.text = "Actual Storage Water Level: \nSufficient"
                                         waterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
+                                        actualwaterLevelStorageCard.setBackgroundResource(R.drawable.parameter_card)
                                         waterLevelLowIcon.visibility = View.GONE
                                     }
                                 }
                             }
-                        } else {
+                        }
+
+                        // Handle actual sensor values from ESP32
+                        else if (receivedMessage.contains("WATER TEMP:") || receivedMessage.contains("HUMIDITY:")) {
+                            val lines = receivedMessage.split("\n")
+                            var temp: String? = null
+                            var humid: String? = null
+
+                            for (line in lines) {
+                                when {
+                                    line.contains("WATER TEMP:") -> temp = line.substringAfter("WATER TEMP:").trim()
+                                    line.contains("HUMIDITY:") -> humid = line.substringAfter("HUMIDITY:").trim()
+                                }
+                            }
+
+                            runOnUiThread {
+                                actualTemperatureValue.text = if (temp != null) "Actual Temperature: $temp°C" else "--"
+                                actualHumidityValue.text = if (humid != null) "Actual Humidity: $humid%" else "--"
+                            }
+                        }
+
+                        else {
                             Log.d(TAG, "Ignored irrelevant or incomplete data: $receivedMessage")
                         }
                     }
@@ -409,19 +349,19 @@ class HomeActivity : AppCompatActivity() {
                 }
             }
         }
-        // Parsing function specifically for storage water level
+
+        // Parses only the STORAGE_WATER_LEVEL part
         private fun parseWaterLevel(data: String): String {
             return data.substringAfter("STORAGE_WATER_LEVEL:")
                 .trim()
                 .let {
                     when (it) {
-                        "0" -> "0.00" // LOW (refill needed)
-                        "1" -> "100.00" // HIGH (sufficient)
-                        else -> "--"
-                    }
+                        "0" -> "0.00"
+                        "1" -> "100.00"
+                        else -> "--" }
                 }
         }
-//        call to send data to remote device
+
         fun write(message: ByteArray) {
             try {
                 Log.d("Bluetooth", "Writing to outputStream: ${String(message)}")
@@ -432,7 +372,7 @@ class HomeActivity : AppCompatActivity() {
                 Log.e("Bluetooth", "Error sending data", e)
             }
         }
-//        call to shut down connection
+
         fun cancel() {
             try {
                 isRunning = false
@@ -445,12 +385,9 @@ class HomeActivity : AppCompatActivity() {
 
     private fun showWaterLevelLowNotification(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel("low_water_level_channel", "Water Level Alerts", NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(channel)
-        }
-
+            notificationManager.createNotificationChannel(channel) }
         val notification = NotificationCompat.Builder(context, "low_water_level_channel")
             .setContentTitle("Water Level Alert")
             .setContentText("The storage water level is low. Please refill the water storage!")
@@ -458,14 +395,11 @@ class HomeActivity : AppCompatActivity() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
-
-        notificationManager.notify(1, notification)
-    }
+        notificationManager.notify(1, notification) }
 
     override fun onDestroy() {
         super.onDestroy()
-        acceptThread?.cancel()
-    }
+        acceptThread?.cancel() }
 
     private fun getPairedDevices() {
         val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
@@ -473,43 +407,29 @@ class HomeActivity : AppCompatActivity() {
             val deviceName = device.name
             val deviceAddress = device.address // MAC Address
             Log.d("Bluetooth", "Paired Device: $deviceName - $deviceAddress")
-        }
-    }
+        } }
 
     private fun startDiscovery() {
         if (bluetoothAdapter?.isDiscovering == true) {
-            bluetoothAdapter?.cancelDiscovery()
-        }
-        bluetoothAdapter?.startDiscovery()
-    }
+            bluetoothAdapter?.cancelDiscovery() }
+        bluetoothAdapter?.startDiscovery() }
 
     private fun checkAndEnableBluetooth() {
         if (bluetoothAdapter?.isEnabled == false) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-        }
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT) }
         bluetoothAdapter?.let {
-            if (!it.isEnabled) {
-                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-            }
-        } ?: run {
-            Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_SHORT).show()
-        }
-
+            if (!it.isEnabled) { val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT) } } ?: run { Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_SHORT).show() }
         // Start discovering devices
         if (bluetoothAdapter!!.isDiscovering) {
-            bluetoothAdapter!!.cancelDiscovery()
-        }
+            bluetoothAdapter!!.cancelDiscovery() }
         bluetoothAdapter!!.startDiscovery()
-
         // Register receiver for discovery results
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, filter)
-
         // Try connecting to "ToasterACARE"
-        connectToToasterACARE()
-    }
+        connectToToasterACARE() }
 
     fun connectToToasterACARE() {
         bluetoothAdapter?.cancelDiscovery() // Stop discovery before connecting
@@ -526,25 +446,15 @@ class HomeActivity : AppCompatActivity() {
                         socket.connect()
                         Log.d("Bluetooth", "Successfully connected to AsteraCare")
                         Toast.makeText(this, "Connected to AsteraCare", Toast.LENGTH_SHORT).show()
-
                         // Call manageConnectedSocket() - initiliaze communication thread
                         manageConnectedSocket(socket)
-
                         return
-                    } catch (e: Exception) {
-                        Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
+                    } catch (e: Exception) { Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
                        Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-
                         // Prompt user to connect to the chamber if connection fails
-                        promptToConnectToChamber()
-                    }
-                }
-            }
-        } else {
-            Log.d("Bluetooth", "AsteraCare device not found in paired devices.")
-            Toast.makeText(this, "AsteraCare not paired. Please pair it first.", Toast.LENGTH_SHORT).show()
-        }
-    }
+                        promptToConnectToChamber() } } }
+        } else { Log.d("Bluetooth", "AsteraCare device not found in paired devices.")
+            Toast.makeText(this, "AsteraCare not paired. Please pair it first.", Toast.LENGTH_SHORT).show() } }
 
     fun promptToConnectToChamber() {
         // Show an AlertDialog to prompt the user to connect the chamber
@@ -554,20 +464,16 @@ class HomeActivity : AppCompatActivity() {
             .setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
                 // Optionally, trigger the pairing process or discovery again if needed
-                startDiscovery()
-            }
+                startDiscovery() }
             .setCancelable(false) // Prevent dismissing without action
             .show()
-
         Handler(Looper.getMainLooper()).postDelayed({
             // Access the title and change the color
             val titleTextView = dialog.findViewById<TextView>(android.R.id.title)
             titleTextView?.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
-
             // Access and change the message text color
             val messageTextView = dialog.findViewById<TextView>(android.R.id.message)
             messageTextView?.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
-
             // Access and change the positive button text color
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             positiveButton.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
@@ -582,25 +488,18 @@ class HomeActivity : AppCompatActivity() {
                 // Start discovery only after Bluetooth is enabled
                 startDiscovery()
                 connectToToasterACARE()
-            } else {
-                Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
+            } else { Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show() } } }
 
     private fun showModeConfirmationDialog() {
         val newMode = if (isManualMode) "Automatic" else "Manual"
         val message = "Are you sure you want to switch to $newMode mode?"
-
         AlertDialog.Builder(this)
             .setTitle("Confirm Mode Change")
             .setMessage(message)
             .setPositiveButton("Yes") { _, _ ->
-                switchMode()
-            }
+                switchMode() }
             .setNegativeButton("Cancel", null)
-            .show()
-    }
+            .show() }
 
     private fun switchMode() {
         if (isManualMode) {
@@ -615,11 +514,8 @@ class HomeActivity : AppCompatActivity() {
             modeIndicator.text = "Mode: Manual"
             modeToggleButton.text = "Switch to Automatic"
             editParametersButton.visibility = View.VISIBLE
-            showManualModeForm() // Open form immediately when switching to manual
-        }
-
-        Toast.makeText(this, "Mode switched to ${if (isManualMode) "Manual" else "Automatic"}", Toast.LENGTH_SHORT).show()
-    }
+            showManualModeForm() }
+        Toast.makeText(this, "Mode switched to ${if (isManualMode) "Manual" else "Automatic"}", Toast.LENGTH_SHORT).show() }
 
     private fun showManualModeForm() {
         // Sync values from auto mode to manual inputs
@@ -639,7 +535,6 @@ class HomeActivity : AppCompatActivity() {
         val waterLevelFlowerValue = dialogView.findViewById<TextView>(R.id.waterLevelFlowerValue)
         val decreaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.decreasewaterLevelFlowerValue)
         val increaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.increasewaterLevelFlowerValue)
-        // Temperature controls
         // Display current values
         temperatureValue.text = "$tempInput°C"
         humidityValue.text = "$humidityInput%"
@@ -647,91 +542,59 @@ class HomeActivity : AppCompatActivity() {
         decreaseTemp.setOnClickListener {
             if (tempInput > minTemperature) {
                 tempInput -= 1
-                temperatureValue.text = "$tempInput°C"
-            }
-        }
+                temperatureValue.text = "$tempInput°C" } }
         increaseTemp.setOnClickListener {
             if (tempInput < maxTemperature) {
                 tempInput += 1
-                temperatureValue.text = "$tempInput°C"
-            }
-        }
-        // Humidity controls
+                temperatureValue.text = "$tempInput°C" } }
         decreaseHumidity.setOnClickListener {
             if (humidityInput > minHumidity) {
                 humidityInput -= 1
-                humidityValue.text = "$humidityInput%"
-            }
-        }
+                humidityValue.text = "$humidityInput%" } }
         increaseHumidity.setOnClickListener {
             if (humidityInput < maxHumidity) {
                 humidityInput += 1
-                humidityValue.text = "$humidityInput%"
-            }
-        }
-        // Flower water level
+                humidityValue.text = "$humidityInput%" } }
         decreaseWaterLevelFlowerValue.setOnClickListener {
             if (waterLevelFlowerValueInput > minWaterLevel) {
                 waterLevelFlowerValueInput -= 1
-                waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
-            }
-        }
+                waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%" } }
         increaseWaterLevelFlowerValue.setOnClickListener {
             if (waterLevelFlowerValueInput < maxWaterLevel) {
                 waterLevelFlowerValueInput += 1
-                waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
-            }
-        }
+                waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%" } }
 
         val dialogBuilder = AlertDialog.Builder(this)
         dialogBuilder.setView(dialogView)
-
         val alertDialog = dialogBuilder.create()
         alertDialog.show()
-
         val sendManualButton = dialogView.findViewById<Button>(R.id.sendManualButton)
 
         sendManualButton.setOnClickListener {
-            // Get the updated values before sending
-//            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER_FLOWER:$waterLevelFlowerValueInput"
             val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput"
             currentTemperature = tempInput
             currentHumidity = humidityInput
             currentWaterLevelFlower = waterLevelFlowerValueInput
-
             if (communicationThread != null) {
                 Log.d("Bluetooth", "Sending message: $messageToSend")
                 communicationThread?.write(messageToSend.toByteArray())
                 Toast.makeText(this, "Parameters successfully sent to chamber!", Toast.LENGTH_SHORT).show()
-
                 // Pass values back to `HomeActivity`
                 updateHomeScreen(tempInput, humidityInput, waterLevelFlowerValueInput)
                 Log.d("update home screen", "Updated: $tempInput, $humidityInput, $waterLevelFlowerValueInput")
-
-            } else {
-                Log.e("Bluetooth", "Communication thread is not initialized!")
-            }
-            alertDialog.dismiss()
-        }
-    }
+            } else { Log.e("Bluetooth", "Communication thread is not initialized!") }
+            alertDialog.dismiss() } }
     private fun updateHomeScreen(temp: Float, humidity: Float, waterLevel: Float) {
         temperatureValue.text = "Temperature: $temp°C"
         humidityValue.text = "Humidity: $humidity%"
-        waterLevelFlowerValue.text = "Flower Water Level: $waterLevel%"
-    }
+        waterLevelFlowerValue.text = "Flower Water Level: $waterLevel%" }
     private fun showWelcomeDialog() {
         val dialogView = layoutInflater.inflate(R.layout.welcome_dialog, null)
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(false)
             .create()
-
         val gotItButton = dialogView.findViewById<Button>(R.id.btnGotIt)
-        gotItButton.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
-
+        gotItButton.setOnClickListener { dialog.dismiss() }
+        dialog.show() }
 }
