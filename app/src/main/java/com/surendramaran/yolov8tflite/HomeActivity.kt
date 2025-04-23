@@ -432,29 +432,46 @@ class HomeActivity : AppCompatActivity() {
         connectToToasterACARE() }
 
     fun connectToToasterACARE() {
-        bluetoothAdapter?.cancelDiscovery() // Stop discovery before connecting
-        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
-        if (!pairedDevices.isNullOrEmpty()) {
-            for (device in pairedDevices) {
-                if (device.name == "AsteraCare") {
-                    Log.d("Bluetooth", "Attempting to connect to AsteraCare (${device.address})")
-                    try {
-                        val uuid = device.uuids?.firstOrNull()?.uuid ?: MY_UUID
-                        Log.d("Bluetooth", "Using UUID: $uuid") // Log the UUID
-                        val socket = device.createRfcommSocketToServiceRecord(uuid)
-                        Log.d("Bluetooth", "Connecting to socket...")
-                        socket.connect()
-                        Log.d("Bluetooth", "Successfully connected to AsteraCare")
-                        Toast.makeText(this, "Connected to AsteraCare", Toast.LENGTH_SHORT).show()
-                        // Call manageConnectedSocket() - initiliaze communication thread
-                        manageConnectedSocket(socket)
-                        return
-                    } catch (e: Exception) { Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
-                       Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-                        // Prompt user to connect to the chamber if connection fails
-                        promptToConnectToChamber() } } }
-        } else { Log.d("Bluetooth", "AsteraCare device not found in paired devices.")
-            Toast.makeText(this, "AsteraCare not paired. Please pair it first.", Toast.LENGTH_SHORT).show() } }
+        Thread {
+            bluetoothAdapter?.cancelDiscovery()
+            val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+
+            if (!pairedDevices.isNullOrEmpty()) {
+                for (device in pairedDevices) {
+                    if (device.name == "AsteraCare") {
+                        Log.d("Bluetooth", "Attempting to connect to AsteraCare (${device.address})")
+                        try {
+                            val uuid = device.uuids?.firstOrNull()?.uuid ?: MY_UUID
+                            Log.d("Bluetooth", "Using UUID: $uuid")
+
+                            val socket = device.createRfcommSocketToServiceRecord(uuid)
+                            Log.d("Bluetooth", "Connecting to socket...")
+                            socket.connect()
+                            Log.d("Bluetooth", "Successfully connected to AsteraCare")
+
+                            runOnUiThread {
+                                Toast.makeText(this, "Connected to AsteraCare", Toast.LENGTH_SHORT).show()
+                            }
+
+                            manageConnectedSocket(socket)
+                            return@Thread
+
+                        } catch (e: Exception) {
+                            Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
+                            runOnUiThread {
+                                Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
+//                                promptToConnectToChamber()
+                            }
+                        }
+                    }
+                }
+            } else {
+                Log.d("Bluetooth", "AsteraCare device not found in paired devices.")
+                runOnUiThread {
+                    Toast.makeText(this, "AsteraCare not paired. Please pair it first.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start() }
 
     fun promptToConnectToChamber() {
         // Show an AlertDialog to prompt the user to connect the chamber
