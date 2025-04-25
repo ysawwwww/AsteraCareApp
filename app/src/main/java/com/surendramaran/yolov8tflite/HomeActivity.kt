@@ -650,7 +650,7 @@ class HomeActivity : AppCompatActivity() {
             Log.d("Bluetooth", "Actuator states: $actuator1State, $actuator2State, $actuator3State, $actuator4State")
 
             // Construct a message to send to the ESP32
-            val messageToSend = "$actuator1State$actuator2State$actuator3State$actuator4State"
+            val messageToSend = "ACTUATORS:$actuator1State$actuator2State$actuator3State$actuator4State"
 
             // Send the message to the ESP32 (assuming you have the communication thread)
             if (communicationThread != null) {
