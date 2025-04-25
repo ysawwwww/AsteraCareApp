@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -161,6 +162,20 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         //        putting dis here just to be sure lolol
             connectToToasterACARE() }
+        // Find FAB and set a click listener
+        val fab: FloatingActionButton = findViewById(R.id.demoFab)
+        fab.setOnClickListener {
+            // Open DemoActivity when FAB is clicked
+            val intent = Intent(this, DemoActivity::class.java)
+            startActivity(intent)
+        }
+
+        val data = intent.getStringExtra("actuator_data")
+        if (!data.isNullOrEmpty()) {
+            Log.d("HomeActivity", "Received actuator data: $data")
+        } else {
+            Log.d("HomeActivity", "No actuator data received.")
+        }
 
         // Receive and display captured image if available
         val byteArray = intent.getByteArrayExtra("capturedImage")
@@ -198,6 +213,7 @@ class HomeActivity : AppCompatActivity() {
         humidityValue.text = "Humidity: ${if (humidity >= 0) "$humidity%" else "--%"}"
         waterLevelFlowerValue.text = "Flower Water Level: ${if (waterLevelFlower >= 0) "$waterLevelFlower%" else "--%"}"
 
+//        sending data to esp32
         communicationThread?.write("FLOWER:$currentDetectedFlower\n".toByteArray())
 
         modeToggleButton = findViewById(R.id.modeToggleButton)

@@ -320,13 +320,13 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                 // Check if the flower is recognized
                 if (!flowerParameters.containsKey(detectedFlower)) {
                     // Show custom message for unknown flower
-                    showPopup(
-                        listOf(
-                            "This flower is not yet supported by the app.",
-                            "Future updates may include it. Stay tuned!"
-                        )
-                    )
-                    return@runOnUiThread
+//                    showPopup(
+//                        listOf(
+//                            "This flower is not yet supported by the app.",
+//                            "Future updates may include it. Stay tuned!"
+//                        )
+//                    )
+//                    return@runOnUiThread
                 }
 
                 // Get flower parameters based on detected flower

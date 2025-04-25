@@ -4,7 +4,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/app_background">
+    android:background="@color/app_background"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Toolbar / Header Section -->
     <LinearLayout
@@ -61,8 +62,10 @@
             android:focusable="true"
             android:layout_marginEnd="10dp"/>
     </LinearLayout>
-
-    <!-- ScrollView for Remaining Content -->
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<!-- ScrollView for Remaining Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -443,7 +446,6 @@
                 <!-- Add Mode Toggle and Send Button Here -->
                 <Button
                     android:id="@+id/modeToggleButton"
-
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Switch to Manual"
@@ -453,4 +455,16 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/demoFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="18dp"
+        android:src="@drawable/eye_fill"
+        android:contentDescription="Run Demo"
+        android:backgroundTint="@color/emerald_600"
+        style="@style/MyFABShape"
+        app:tint="@null"/>
+</FrameLayout>
 </LinearLayout>
