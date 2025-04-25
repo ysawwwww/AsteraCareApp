@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyFABShape" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="shapeAppearance">@style/CircularShape</item>
+    </style>
+
+    <style name="CircularShape" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>

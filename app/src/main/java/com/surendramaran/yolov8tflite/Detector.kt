@@ -119,7 +119,7 @@ class Detector(
             }
 
             if (maxConf > CONFIDENCE_THRESHOLD) {
-                val clsName = if (maxConf >= 0.8f) labels[maxIdx] else "Unknown"
+                val clsName = if (maxConf >= 0.75f) labels[maxIdx] else "Unknown"
                 val cx = array[c] // 0
                 val cy = array[c + numElements] // 1
                 val w = array[c + numElements * 2]

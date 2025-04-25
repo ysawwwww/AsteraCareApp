@@ -66,6 +66,8 @@ class OverlayView(context: Context, attrs: AttributeSet?) : View(context, attrs)
         super.onDraw(canvas)
 
         results.forEach { boundingBox ->
+            if (boundingBox.clsName == "Unknown") return@forEach
+
             val left = boundingBox.x1 * width
             val top = boundingBox.y1 * height
             val right = boundingBox.x2 * width

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <!-- Actuator Control Section -->
+        <TextView
+            android:id="@+id/actuatorControlTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Control Actuators"
+            android:textSize="18sp"
+            android:textColor="@color/emerald_950"
+            android:textStyle="bold"
+            android:paddingTop="0dp"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:id="@+id/actuatorControldesc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="For demonstration purposes only."
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:textColor="@color/emerald_950"
+            android:paddingTop="0dp"
+            android:paddingBottom="8dp" />
+
+        <!-- Actuator 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Peltier"
+                android:textSize="16sp"
+                android:textColor="@color/emerald_950"
+                android:textStyle="bold"
+                android:layout_weight="1" />
+
+            <Switch
+                android:id="@+id/actuator1Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOff="OFF"
+                android:textOn="ON"
+                android:checked="false"
+                android:thumbTint="@color/emerald_950"
+                android:trackTint="@color/emerald_700" />
+        </LinearLayout>
+
+        <!-- Actuator 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mist Maker"
+                android:textSize="16sp"
+                android:textColor="@color/emerald_950"
+                android:textStyle="bold"
+                android:layout_weight="1" />
+
+            <Switch
+                android:id="@+id/actuator2Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOff="OFF"
+                android:textOn="ON"
+                android:checked="false"
+                android:thumbTint="@color/emerald_950"
+                android:trackTint="@color/emerald_700" />
+        </LinearLayout>
+
+        <!-- Actuator 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Water Pump"
+                android:textSize="16sp"
+                android:textColor="@color/emerald_950"
+                android:textStyle="bold"
+                android:layout_weight="1" />
+
+            <Switch
+                android:id="@+id/actuator3Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOff="OFF"
+                android:textOn="ON"
+                android:checked="false"
+                android:thumbTint="@color/emerald_950"
+                android:trackTint="@color/emerald_700" />
+        </LinearLayout>
+        <!-- Actuator 4 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Solenoid Valve"
+                android:textSize="16sp"
+                android:textColor="@color/emerald_950"
+                android:textStyle="bold"
+                android:layout_weight="1" />
+
+            <Switch
+                android:id="@+id/actuator4Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOff="OFF"
+                android:textOn="ON"
+                android:checked="false"
+                android:thumbTint="@color/emerald_950"
+                android:trackTint="@color/emerald_700" />
+        </LinearLayout>
+    <Button
+        android:id="@+id/activateActuatorsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Activate Actuators"
+        android:backgroundTint="@color/button_color"
+        android:textColor="@color/emerald_100"
+        android:padding="8dp"
+        android:layout_marginTop="8dp" />
+</LinearLayout>
+</LinearLayout>

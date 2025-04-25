@@ -106,13 +106,13 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     }
 
     private fun captureAndSendImage(
-         bitmap: Bitmap,
-         mode: String,
-         temp: Float,
-         humidity: Float,
-         waterLevelFlower: Float,
-         flowerImageResId: Int,
-         detectedFlower: String
+        bitmap: Bitmap,
+        mode: String,
+        temp: Float,
+        humidity: Float,
+        waterLevelFlower: Float,
+        flowerImageResId: Int,
+        detectedFlower: String
     ){
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
@@ -320,13 +320,13 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
                 // Check if the flower is recognized
                 if (!flowerParameters.containsKey(detectedFlower)) {
                     // Show custom message for unknown flower
-                    showPopup(
-                        listOf(
-                            "This flower is not yet supported by the app.",
-                            "Future updates may include it. Stay tuned!"
-                        )
-                    )
-                    return@runOnUiThread
+//                    showPopup(
+//                        listOf(
+//                            "This flower is not yet supported by the app.",
+//                            "Future updates may include it. Stay tuned!"
+//                        )
+//                    )
+//                    return@runOnUiThread
                 }
 
                 // Get flower parameters based on detected flower

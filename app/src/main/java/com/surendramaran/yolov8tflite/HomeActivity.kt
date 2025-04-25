@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -41,6 +42,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import android.widget.Switch
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var capturedFlowerImage: ImageView
@@ -219,7 +221,13 @@ class HomeActivity : AppCompatActivity() {
             modeIndicator.visibility = View.VISIBLE
             if (isManualMode) { editParametersButton.visibility = View.VISIBLE } }
         val consoleIcon: ImageView = findViewById(R.id.consoleIcon)
-        consoleIcon.setOnClickListener { showConsoleDialog() } }
+        consoleIcon.setOnClickListener { showConsoleDialog() }
+        // Find FAB and set a click listener
+        val fab: FloatingActionButton = findViewById(R.id.demoFab)
+        fab.setOnClickListener {
+            showDemoDialog()
+        }
+    }
 
     private fun startBluetoothServer() {
         acceptThread = AcceptThread()
@@ -614,4 +622,51 @@ class HomeActivity : AppCompatActivity() {
         val gotItButton = dialogView.findViewById<Button>(R.id.btnGotIt)
         gotItButton.setOnClickListener { dialog.dismiss() }
         dialog.show() }
+    private fun showDemoDialog() {
+        // Inflate the dialog layout
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_demo, null)
+
+        // Create the AlertDialog builder
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true) // Make it dismissible by tapping outside or pressing back
+
+        // Get the switches for actuators
+        val actuator1Switch = dialogView.findViewById<Switch>(R.id.actuator1Switch)
+        val actuator2Switch = dialogView.findViewById<Switch>(R.id.actuator2Switch)
+        val actuator3Switch = dialogView.findViewById<Switch>(R.id.actuator3Switch)
+        val actuator4Switch = dialogView.findViewById<Switch>(R.id.actuator4Switch)
+
+        // Get the button to activate actuators
+        val demoButton = dialogView.findViewById<Button>(R.id.activateActuatorsButton)
+        demoButton?.setOnClickListener {
+            // Get the current state of the switches
+            val actuator1State = if (actuator1Switch.isChecked) 1 else 0
+            val actuator2State = if (actuator2Switch.isChecked) 1 else 0
+            val actuator3State = if (actuator3Switch.isChecked) 1 else 0
+            val actuator4State = if (actuator4Switch.isChecked) 1 else 0
+
+            // Log the actuator states to debug
+            Log.d("Bluetooth", "Actuator states: $actuator1State, $actuator2State, $actuator3State, $actuator4State")
+
+            // Construct a message to send to the ESP32
+            val messageToSend = "$actuator1State$actuator2State$actuator3State$actuator4State"
+
+            // Send the message to the ESP32 (assuming you have the communication thread)
+            if (communicationThread != null) {
+                Log.d("Bluetooth", "Sending message: $messageToSend")
+                communicationThread?.write(messageToSend.toByteArray())
+                Toast.makeText(this, "Actuators successfully activated!", Toast.LENGTH_SHORT).show()
+            } else {
+                Log.e("Bluetooth", "Communication thread is not initialized!")
+            }
+
+            // Dismiss the dialog after sending the message
+            dialogBuilder.create().dismiss()
+        }
+
+        // Create and show the dialog
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
+    }
 }
