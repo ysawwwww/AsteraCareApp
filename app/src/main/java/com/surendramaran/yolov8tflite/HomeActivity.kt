@@ -162,6 +162,7 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         //        putting dis here just to be sure lolol
             connectToToasterACARE() }
+
         // Find FAB and set a click listener
         val fab: FloatingActionButton = findViewById(R.id.demoFab)
         fab.setOnClickListener {
@@ -173,6 +174,7 @@ class HomeActivity : AppCompatActivity() {
         val data = intent.getStringExtra("actuator_data")
         if (!data.isNullOrEmpty()) {
             Log.d("HomeActivity", "Received actuator data: $data")
+            communicationThread?.write("ACTUATOR:$data\n".toByteArray())
         } else {
             Log.d("HomeActivity", "No actuator data received.")
         }
