@@ -96,6 +96,14 @@ class Detector(
             return
         }
 
+        // Count distinct flower classes
+        val uniqueClasses = bestBoxes.map { it.clsName }.distinct()
+
+        if (uniqueClasses.size > 1) {
+            detectorListener.onMultipleClassesDetected(uniqueClasses)
+            return
+        }
+
         detectorListener.onDetect(bestBoxes, inferenceTime)
     }
 
@@ -193,6 +201,7 @@ class Detector(
     interface DetectorListener {
         fun onEmptyDetect()
         fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long)
+        fun onMultipleClassesDetected(detectedClasses: List<String>)
     }
 
     companion object {

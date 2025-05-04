@@ -87,7 +87,7 @@
     <!-- Pop-up Container -->
     <LinearLayout
         android:id="@+id/popupContainer"
-        android:layout_width="wrap_content"
+        android:layout_width="330dp"
         android:layout_height="wrap_content"
         android:background="@drawable/popup_background" 
         android:padding="24dp"
@@ -104,7 +104,7 @@
         android:id="@+id/popupTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Unknown Flower Detected"
+        android:text="Multiple Flowers Detected"
         android:textSize="18sp"
         android:textStyle="bold"
         android:paddingBottom="8dp"
@@ -117,10 +117,10 @@
         android:id="@+id/detectedFlowers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No flowers detected."
+        android:text="Please only use one type of flower to classify."
         android:textSize="16sp"
         android:textColor="@color/emerald_950"
-        android:paddingBottom="16dp"/>
+        android:paddingBottom="8dp"/>
 
     <!-- Send Button -->
     <Button
@@ -135,7 +135,7 @@
         android:id="@+id/closePopup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Got it"
+        android:text="OK"
         android:backgroundTint="@color/button_color"
         android:layout_marginTop="2dp"
         android:layout_gravity="center"/>

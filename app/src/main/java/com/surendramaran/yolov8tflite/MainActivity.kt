@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private fun setFlashState(enable: Boolean) {
         camera?.cameraControl?.enableTorch(enable)
     }
-
+    private var isPopupShown = false
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
             "No flowers detected."
         }
 
-        detectedFlowersTextView.text = detectedText
+//        detectedFlowersTextView.text = detectedText
         popupBackground.visibility = View.VISIBLE
         popupContainer.visibility = View.VISIBLE
     }
@@ -171,6 +171,7 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     private fun hidePopup() {
         findViewById<View>(R.id.popupBackground).visibility = View.GONE
         findViewById<LinearLayout>(R.id.popupContainer).visibility = View.GONE
+        isPopupShown = false
     }
 
     private fun startCamera() {
@@ -306,6 +307,8 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
 
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         runOnUiThread {
+            if (isPopupShown) return@runOnUiThread // prevent detection while popup is active
+
             binding.inferenceTime.text = "${inferenceTime}ms"
             binding.overlay.apply {
                 setResults(boundingBoxes)
@@ -347,5 +350,13 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
             }
         }
     }
-
+    override fun onMultipleClassesDetected(detectedClasses: List<String>) {
+        runOnUiThread {
+//            Toast.makeText(this, "Please use only one flower type. Detected: ${detectedClasses.joinToString()}", Toast.LENGTH_LONG).show()
+            if (!isPopupShown) {
+                isPopupShown = true
+                showPopup(detectedClasses)
+            }
+        }
+    }
 }
