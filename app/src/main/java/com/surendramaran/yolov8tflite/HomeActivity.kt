@@ -152,6 +152,12 @@ class HomeActivity : AppCompatActivity() {
 
         val detectedFlower = intent.getStringExtra("detectedFlower") ?: "Unknown Flower"
         detectedFlowersTextView.text = "Detected Flower: $detectedFlower"
+        //        prompt to connect after detection
+        if (detectedFlower != "Unknown Flower") {
+            Handler(Looper.getMainLooper()).postDelayed({
+                promptToConnectToChamber()
+            }, 3000)
+        }
 
         // Receive and display flower-specific image and parameters
         val flowerImageResId = intent.getIntExtra("flowerImage", R.drawable.asteracare_logo)
@@ -160,9 +166,7 @@ class HomeActivity : AppCompatActivity() {
         // Set click listener to open MainActivity
         openCameraButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-        //        putting dis here just to be sure lolol
-            connectToToasterACARE() }
+            startActivity(intent) }
 
         // Receive and display captured image if available
         val byteArray = intent.getByteArrayExtra("capturedImage")
@@ -466,10 +470,10 @@ class HomeActivity : AppCompatActivity() {
 
                         } catch (e: Exception) {
                             Log.e("Bluetooth", "Error connecting to AsteraCare: ${e.message}")
-                            runOnUiThread {
-                                Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-//                                promptToConnectToChamber()
-                            }
+//                            runOnUiThread {
+//                                Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
+////                                promptToConnectToChamber()
+//                            }
                         }
                     }
                 }
@@ -482,27 +486,22 @@ class HomeActivity : AppCompatActivity() {
         }.start() }
 
     fun promptToConnectToChamber() {
-        // Show an AlertDialog to prompt the user to connect the chamber
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_connect_chamber, null)
+
+        val connectButton = dialogView.findViewById<Button>(R.id.buttonConnectChamber)
+
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Chamber Connection Required")
-            .setMessage("Please connect app to the chamber via Bluetooth. Click Connect to Chamber button.")
-            .setPositiveButton("OK") { dialog, _ ->
-                dialog.dismiss()
-                // Optionally, trigger the pairing process or discovery again if needed
-                startDiscovery() }
-            .setCancelable(false) // Prevent dismissing without action
-            .show()
-        Handler(Looper.getMainLooper()).postDelayed({
-            // Access the title and change the color
-            val titleTextView = dialog.findViewById<TextView>(android.R.id.title)
-            titleTextView?.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
-            // Access and change the message text color
-            val messageTextView = dialog.findViewById<TextView>(android.R.id.message)
-            messageTextView?.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
-            // Access and change the positive button text color
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            positiveButton.setTextColor(Color.parseColor("#003421")) // Replace with your desired color
-        }, 100) // Delay of 100 ms to ensure dialog initialization
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        connectButton.setOnClickListener {
+            Log.d("Bluetooth", "Connect Chamber button clicked (from dialog)")
+            checkAndEnableBluetooth()
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -4,7 +4,27 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:gravity="center">
+    <TextView
+        android:id="@+id/chamberParameterSettingsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chamber Parameter Settings"
+        android:textSize="18sp"
+        android:textColor="@color/emerald_950"
+        android:textStyle="bold"
+        android:paddingTop="0dp"
+        android:paddingBottom="8dp" />
+    <!--    <TextView-->
+    <!--        android:id="@+id/actuatorControldesc"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:text="Configure chamber settings."-->
+    <!--        android:textSize="12sp"-->
+    <!--        android:textColor="@color/emerald_950"-->
+    <!--        android:paddingTop="0dp"-->
+    <!--        android:paddingBottom="8dp" />-->
     <!-- Temperature Card -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,9 +56,9 @@
                 android:layout_height="wrap_content"
                 android:text="Temperature"
                 android:textSize="14sp"
-                android:textColor="@color/black"
+                android:textColor="@color/emerald_950"
                 android:textStyle="bold"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="8dp"
                 android:layout_gravity="start" />
 
             <!-- Button & Value Container -->
@@ -61,7 +81,7 @@
 
                 <TextView
                     android:id="@+id/tempValue"
-                    android:layout_width="60dp"
+                    android:layout_width="50dp"
                     android:layout_height="40dp"
                     android:text="--%"
                     android:textSize="16sp"
@@ -115,9 +135,9 @@
                 android:layout_height="wrap_content"
                 android:text="Humidity"
                 android:textSize="14sp"
-                android:textColor="@color/black"
+                android:textColor="@color/emerald_950"
                 android:textStyle="bold"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="8dp"
                 android:layout_gravity="start" />
 
             <!-- Button & Value Container -->
@@ -140,7 +160,7 @@
 
                 <TextView
                     android:id="@+id/humidityValue"
-                    android:layout_width="60dp"
+                    android:layout_width="50dp"
                     android:layout_height="40dp"
                     android:text="--%"
                     android:textSize="16sp"
@@ -165,7 +185,6 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:visibility="gone"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="12dp"
@@ -177,7 +196,7 @@
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/water" />
+            android:src="@drawable/waves" />
 
         <!-- Container for Parameter Name and Controls -->
         <LinearLayout
@@ -192,11 +211,11 @@
                 android:id="@+id/labelWaterLevelFlower"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Flower Water Level"
+                android:text="Storage Water Level"
                 android:textSize="14sp"
-                android:textColor="@color/black"
+                android:textColor="@color/emerald_950"
                 android:textStyle="bold"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="8dp"
                 android:layout_gravity="start" />
 
             <!-- Button & Value Container -->
@@ -208,20 +227,19 @@
 
                 <Button
                     android:id="@+id/decreasewaterLevelFlowerValue"
-                    android:layout_width="60dp"
+                    android:layout_width="85dp"
                     android:layout_height="40dp"
-                    android:text="-"
-                    android:textSize="16sp"
+                    android:text="Drain"
+                    android:textSize="14sp"
                     android:textColor="@color/white"
-                    android:textStyle="bold"
                     android:backgroundTint="@color/button_color"
                     android:layout_marginEnd="8dp" />
 
                 <TextView
                     android:id="@+id/waterLevelFlowerValue"
-                    android:layout_width="60dp"
+                    android:layout_width="0dp"
                     android:layout_height="40dp"
-                    android:text="--%"
+                    android:text=""
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:gravity="center"
@@ -230,11 +248,10 @@
 
                 <Button
                     android:id="@+id/increasewaterLevelFlowerValue"
-                    android:layout_width="60dp"
+                    android:layout_width="85dp"
                     android:layout_height="40dp"
-                    android:text="+"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:text="Fill"
+                    android:textSize="14sp"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/button_color"
                     android:layout_marginStart="8dp" />
@@ -245,7 +262,7 @@
         android:id="@+id/sendManualButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Send Manual Parameters"
+        android:text="Send"
         android:backgroundTint="@color/button_color"
         android:textColor="@color/emerald_100"
         android:padding="8dp"
