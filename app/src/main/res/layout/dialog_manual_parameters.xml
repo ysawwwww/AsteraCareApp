@@ -224,7 +224,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center">
-
+                <!--drain-->
                 <Button
                     android:id="@+id/decreasewaterLevelFlowerValue"
                     android:layout_width="85dp"
@@ -245,7 +245,7 @@
                     android:gravity="center"
                     android:textColor="@color/emerald_950"
                     android:layout_marginHorizontal="4dp" />
-
+                <!-- fill-->
                 <Button
                     android:id="@+id/increasewaterLevelFlowerValue"
                     android:layout_width="85dp"

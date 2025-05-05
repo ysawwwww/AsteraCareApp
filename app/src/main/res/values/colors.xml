@@ -29,4 +29,7 @@
     <color name="background_color">#FFFFFF</color>
     <color name="surface_color">#F5F5F5</color>
 
+    <color name="button_selected">#0a7149</color>     <!-- Orange for selected -->
+    <color name="button_default">#003421</color>      <!-- Same as default tint -->
+
 </resources>

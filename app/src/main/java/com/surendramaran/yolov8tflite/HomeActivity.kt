@@ -555,38 +555,54 @@ class HomeActivity : AppCompatActivity() {
         val humidityValue = dialogView.findViewById<TextView>(R.id.humidityValue)
         val decreaseHumidity = dialogView.findViewById<Button>(R.id.decreaseHumidity)
         val increaseHumidity = dialogView.findViewById<Button>(R.id.increaseHumidity)
-        // Flower Water Level Increment/Decrement
+        // drain & fill
         val waterLevelFlowerValue = dialogView.findViewById<TextView>(R.id.waterLevelFlowerValue)
         val decreaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.decreasewaterLevelFlowerValue)
         val increaseWaterLevelFlowerValue = dialogView.findViewById<Button>(R.id.increasewaterLevelFlowerValue)
+        val recommendedMinTemp = 3f
+        val recommendedMaxTemp = 10f
+        val recommendedMinHumidity = 70f
+        val recommendedMaxHumidity = 90f
+        var waterActionFlag = -1 // -1 means no change, 0 = drain, 1 = fill
         // Display current values
         temperatureValue.text = "$tempInput°C"
         humidityValue.text = "$humidityInput%"
         waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%"
         decreaseTemp.setOnClickListener {
-            if (tempInput > minTemperature) {
                 tempInput -= 1
-                temperatureValue.text = "$tempInput°C" } }
+                temperatureValue.text = "$tempInput°C"
+                if (tempInput < recommendedMinTemp || tempInput > recommendedMaxTemp) {
+                    Toast.makeText(this, "Warning: Temperature outside safe range (3–10°C)", Toast.LENGTH_SHORT).show()
+                }}
         increaseTemp.setOnClickListener {
-            if (tempInput < maxTemperature) {
                 tempInput += 1
-                temperatureValue.text = "$tempInput°C" } }
+                temperatureValue.text = "$tempInput°C"
+                if (tempInput < recommendedMinTemp || tempInput > recommendedMaxTemp) {
+                    Toast.makeText(this, "Warning: Temperature outside safe range (3–10°C)", Toast.LENGTH_SHORT).show()
+                }}
         decreaseHumidity.setOnClickListener {
-            if (humidityInput > minHumidity) {
                 humidityInput -= 1
-                humidityValue.text = "$humidityInput%" } }
+                humidityValue.text = "$humidityInput%"
+                if (humidityInput < recommendedMinHumidity || humidityInput > recommendedMaxTemp) {
+                    Toast.makeText(this, "Warning: Humidity outside safe range (70–90%)", Toast.LENGTH_SHORT).show()
+                }}
         increaseHumidity.setOnClickListener {
-            if (humidityInput < maxHumidity) {
                 humidityInput += 1
-                humidityValue.text = "$humidityInput%" } }
+                humidityValue.text = "$humidityInput%"
+                if (humidityInput < recommendedMinHumidity || humidityInput > recommendedMaxHumidity) {
+                    Toast.makeText(this, "Warning: Humidity outside safe range (70–90°C)", Toast.LENGTH_SHORT).show()
+                }}
         decreaseWaterLevelFlowerValue.setOnClickListener {
-            if (waterLevelFlowerValueInput > minWaterLevel) {
-                waterLevelFlowerValueInput -= 1
-                waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%" } }
+            waterActionFlag = 0 // Drain
+            waterLevelFlowerValue.text = "↓ Drain"
+            decreaseWaterLevelFlowerValue.backgroundTintList = ContextCompat.getColorStateList(this, R.color.button_selected)
+            increaseWaterLevelFlowerValue.backgroundTintList = ContextCompat.getColorStateList(this, R.color.button_default)
+        }
         increaseWaterLevelFlowerValue.setOnClickListener {
-            if (waterLevelFlowerValueInput < maxWaterLevel) {
-                waterLevelFlowerValueInput += 1
-                waterLevelFlowerValue.text = "$waterLevelFlowerValueInput%" } }
+            waterActionFlag = 1 // Fill
+            waterLevelFlowerValue.text = "↑ Fill"
+            increaseWaterLevelFlowerValue.backgroundTintList = ContextCompat.getColorStateList(this, R.color.button_selected)
+            decreaseWaterLevelFlowerValue.backgroundTintList = ContextCompat.getColorStateList(this, R.color.button_default)}
 
         val dialogBuilder = AlertDialog.Builder(this)
         dialogBuilder.setView(dialogView)
@@ -595,10 +611,25 @@ class HomeActivity : AppCompatActivity() {
         val sendManualButton = dialogView.findViewById<Button>(R.id.sendManualButton)
 
         sendManualButton.setOnClickListener {
-            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput"
+            if (tempInput < recommendedMinTemp || tempInput > recommendedMaxTemp ||
+                humidityInput < recommendedMinHumidity || humidityInput > recommendedMaxHumidity) {
+
+                // Show a warning dialog
+                AlertDialog.Builder(this)
+                    .setTitle("Warning")
+                    .setMessage("The values you've set may harm the flower. Please adjust them within safe limits:\n" +
+                            "• Temperature: 3°C to 10°C\n" +
+                            "• Humidity: 70% to 90%")
+                    .setPositiveButton("OK", null)
+                    .show()
+                return@setOnClickListener // prevent sending
+            }
+
+            val messageToSend = "TEMPERATURE:$tempInput,HUMIDITY:$humidityInput,WATER:$waterActionFlag"
             currentTemperature = tempInput
             currentHumidity = humidityInput
             currentWaterLevelFlower = waterLevelFlowerValueInput
+            Log.d("Bluetooth", "Sending message: $messageToSend")
             if (communicationThread != null) {
                 Log.d("Bluetooth", "Sending message: $messageToSend")
                 communicationThread?.write(messageToSend.toByteArray())
