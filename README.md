@@ -1,7 +1,7 @@
-## YOLOv8 Live Object Detection Android Application
+## AsteraCare Android Application – AI-Based Smart Flower Preservation System
 
 ### Description
-This Android application is designed to perform live object detection using the YOLOv8 machine learning model. YOLOv8 (You Only Look Once version 8) is known for its real-time object detection capabilities, and this app brings that functionality to Android devices. 
+AsteraCare is a mobile application designed to monitor and control a smart flower preservation chamber. It integrates AI-powered flower classification, real-time sensor monitoring, and Bluetooth-based hardware control to extend the lifespan of flowers under optimal conditions.
 
 ### Getting Started
 To use this repository for any custom YOLOv8 Object detection model, follow these steps:
@@ -10,4 +10,9 @@ To use this repository for any custom YOLOv8 Object detection model, follow thes
 3. Rename paths of your model and labels file in Constants.kt file
 4. **Build and Run:**
 
+### Features:
+- AI Classification: Uses a YOLOv8 model to detect and classify Asteraceae flower species.
+- Real-Time Monitoring: Displays chamber temperature, humidity, and other sensor data.
+- Bluetooth Connectivity: Communicates with ESP32 microcontroller for sensor readings and actuator control.
+- Automation: Automatically adjusts preservation conditions based on AI classification and chamber parameters.
 
